@@ -7,36 +7,45 @@
 #include <iomanip>
 #include "Graph.h"
 
-
 using namespace std;
 
-class Map{
+class Map {
 
-	class Node{
+	class Node {
+	private:
+		long long nodeId;
+		double longitude, latitude; // in degrees
 	public:
-		long nodeId;
-		//double latitude_in_degrees, longitude_in_degrees;
-		double longitudeRadians, latitudeRadians;
+		Node(long long nodeId, double longitude, double latitude);
+		long long getId() const;
+		double getLongitude() const;
+		double getLatitude() const;
+		bool operator==(const Node& comparable);
 	};
-	class Road{
+
+	class Road {
+	private:
+		long long roadId;
+		string roadName;
+		bool isTwoWay;
 	public:
-		long roadId;
-		string road_name;
-		bool is_two_way;
+		Road(long long roadId, string roadName, bool isTwoWay);
+		long long getId() const;
+		string getRoadName() const;
+		bool getTwoWay() const;
 	};
-
-	Graph<Node> graph;
-	vector<Road> roads;	//temporary data structure
-
-public:
-	void readInfo();
-	Map() {};
 
 private:
+	Graph<Node *> graph;
+	vector<Road> roads;	//temporary data structure
+
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
 	void readSubRoads(ifstream &in);
 
+public:
+	void readInfo();
+	Map(){};
 };
 
 #endif // MAP_H_
