@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <tr1/unordered_map>
 #include "Graph.h"
 
 using namespace std;
@@ -36,8 +37,8 @@ class Map {
 	};
 
 private:
-	Graph<Node *> graph;
-	vector<Road> roads;	//temporary data structure
+	Graph<Node *, Road *> graph;
+	tr1::unordered_map<long long, Road> roads;
 
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
