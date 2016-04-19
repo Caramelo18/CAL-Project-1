@@ -3,6 +3,8 @@
 
 #include <string>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include "Graph.h"
 
 
@@ -26,11 +28,15 @@ class Map{
 	Graph<Node> graph;
 	vector<Road> roads;	//temporary data structure
 
-	void getInfo();
-	void getNodes(ifstream &in);
-	void getRoads(ifstream &in);
-	void getSubRoads(ifstream &in);
+public:
+	void readInfo();
+	Map() {};
+
+private:
+	void readNodes(ifstream &in);
+	void readRoads(ifstream &in);
+	void readSubRoads(ifstream &in);
 
 };
 
-#endif MAP_H_
+#endif // MAP_H_
