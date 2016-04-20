@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iomanip>
 #include <unordered_map>
+#include <cmath>
 #include "Graph.h"
 
 using namespace std;
@@ -15,7 +16,7 @@ class Map {
 	class Node {
 	private:
 		long long nodeId;
-		double longitude, latitude; // in degrees
+		double longitude, latitude; // in radians
 	public:
 		Node(long long nodeId, double longitude, double latitude);
 		long long getId() const;

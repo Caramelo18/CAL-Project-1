@@ -25,14 +25,14 @@ double Map::Node::getLatitude() const
 }
 
 bool Map::Node::operator==(const Node& comparable)
-{
+				{
 	if (this->nodeId == comparable.nodeId &&
-		this->latitude == comparable.latitude &&
-		this->longitude == comparable.longitude)
+			this->latitude == comparable.latitude &&
+			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-}
+				}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -99,15 +99,17 @@ void Map::readNodes(ifstream &in)
 		ss >> id;
 		ss.clear();
 		getline(in, read, separator); // latitude_degrees
-		ss << setprecision(10) << read;
-		ss >> latitude;
-		ss.clear();
 		getline(in, read, separator); // longitude_degrees
+		getline(in, read, separator); // longitude_radians
 		ss << setprecision(10) << read;
 		ss >> longitude;
 		ss.clear();
-		getline(in, read); // ignores the latitude and longitude on radians
+		getline(in, read); // latitude_radians
+		ss << setprecision(10) << read;
+		ss >> latitude;
+		ss.clear();
 
+		//cout << latitude << "  " << longitude << endl;
 		Node tempNode(id, latitude, longitude);
 		graph.addVertex(tempNode);
 		pair<long long, Node> tempPair(id, tempNode);
@@ -134,10 +136,10 @@ void Map::readRoads(ifstream &in)
 		ss << read;
 		ss >> roadID;
 		ss.clear();
-	//	cout << "road id: " << roadID;
+		//	cout << "road id: " << roadID;
 
 		getline(in, roadName, separator); // road_name
-	//	cout << "  -  road name: " << roadName;
+		//	cout << "  -  road name: " << roadName;
 
 		getline(in, read); // is_two_way
 
@@ -209,6 +211,7 @@ void Map::fillGraph()
 			Node destNode = nodes.at(tempSubRoad.getDestId());
 			Road tempRoad = roads.at(tempSubRoad.getRoadId());
 			double distance = getDistance(originNode, destNode);
+		//	cout << "Origin: " << originNode.getId() << " - Destination: " << destNode.getId() << " - Distance: " << distance << endl;
 			graph.addEdge(node->getInfo(), destNode, tempRoad, distance);
 		}
 	}
@@ -216,5 +219,18 @@ void Map::fillGraph()
 
 double Map::getDistance(Node n1, Node n2)
 {
-	return 1;
+	//	Distance calculated using Haversine formula.
+	//  Taken from: http://stackoverflow.com/questions/365826/calculate-distance-between-2-gps-coordinates
+	int R = 6371;
+	double res = 1;
+
+	double deltaLat = n2.getLatitude() - n1.getLatitude();
+	double deltaLon = n2.getLongitude() - n1.getLongitude();
+
+	double a = sin(deltaLat / 2) * sin(deltaLat / 2) + sin(deltaLon / 2) * sin(deltaLon / 2) * cos(n1.getLatitude()) * cos(n2.getLatitude());
+	double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+	res = R * c;
+
+	return res;
 }
