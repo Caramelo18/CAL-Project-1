@@ -28,7 +28,7 @@ const int INT_INFINITY = 2147483647;
  */
 template <class T, class U>
 class Vertex {
-	T info;
+//	T info;
 	vector<Edge<T, U>  > adj;
 	bool visited;
 	bool processing;
@@ -47,7 +47,7 @@ public:
 
 	int getDist() const;
 	int getIndegree() const;
-
+	T info;
 	Vertex* path;
 };
 
@@ -386,7 +386,10 @@ int Graph<T, U>::maxNewChildren(Vertex<T, U> *v, T &inf) const {
 template <class T, class U>
 Vertex<T, U>* Graph<T, U>::getVertex(const T &v) const {
 	for(unsigned int i = 0; i < vertexSet.size(); i++)
-		if (vertexSet[i]->info == v) return vertexSet[i];
+	{
+		if (vertexSet[i]->info == v)
+			return vertexSet[i];
+	}
 	return NULL;
 }
 

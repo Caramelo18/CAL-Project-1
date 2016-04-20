@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <unordered_map>
 #include <cmath>
+#include <stack>
+#include <vector>
 #include "Graph.h"
 
 using namespace std;
@@ -23,6 +25,11 @@ class Map {
 		double getLongitude() const;
 		double getLatitude() const;
 		bool operator==(const Node& comparable);
+		friend ostream& operator<< (std::ostream &out, const Node &node)
+		{
+			out << "ID: " << node.nodeId << " Latitude: " << node.latitude << " Longitude: " << node.longitude << endl;
+			return out;
+		}
 	};
 
 	class Road {
@@ -58,10 +65,12 @@ private:
 	void readRoads(ifstream &in);
 	void readSubRoads(ifstream &in);
 	double getDistance(Node n1, Node n2);
+	void calculateShortestPath(Node source, Node dest);
 
 public:
 	void readInfo();
 	void fillGraph();
+	void askSource();
 	Map(){};
 };
 

@@ -24,15 +24,16 @@ double Map::Node::getLatitude() const
 	return latitude;
 }
 
+
 bool Map::Node::operator==(const Node& comparable)
-				{
+										{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-				}
+										}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -211,7 +212,7 @@ void Map::fillGraph()
 			Node destNode = nodes.at(tempSubRoad.getDestId());
 			Road tempRoad = roads.at(tempSubRoad.getRoadId());
 			double distance = getDistance(originNode, destNode);
-		//	cout << "Origin: " << originNode.getId() << " - Destination: " << destNode.getId() << " - Distance: " << distance << endl;
+			//	cout << "Origin: " << originNode.getId() << " - Destination: " << destNode.getId() << " - Distance: " << distance << endl;
 			graph.addEdge(node->getInfo(), destNode, tempRoad, distance);
 		}
 	}
@@ -233,4 +234,53 @@ double Map::getDistance(Node n1, Node n2)
 	res = R * c;
 
 	return res;
+}
+
+void Map::askSource()
+{
+	string input;
+	long long id, destID;
+	cout << "Please insert the starting node ID: ";
+	//cin >> id;
+	cout << "Please insert the finishing node ID: ";
+	//cin >> destID;
+	id = 4090279347;
+	destID = 4090279350;
+	auto it = nodes.find(id);
+	auto itDest = nodes.find(destID);
+
+	if(it == nodes.end() || itDest == nodes.end())
+		cout << "No such node" << endl;
+	else
+		calculateShortestPath(it->second, itDest->second);
+
+}
+
+void Map::calculateShortestPath(Node source, Node dest)
+{
+	graph.dijkstraShortestPath(source);
+
+	Vertex<Node, Road>* v = graph.getVertex(dest);
+	stack<Vertex<Node, Road>* > buff;
+	buff.push(v);
+	while(v->path != NULL && !(v->path->getInfo() == source))
+	{
+		v = v->path;
+		buff.push(v);
+	}
+	if( v->path != NULL )
+	{
+		v = v->path;
+		buff.push(v);
+	}
+
+	vector<Vertex<Node, Road>* > ret;
+	while(!buff.empty())
+	{
+		ret.push_back(buff.top());
+		buff.pop();
+	}
+
+	for(unsigned int i = 0; i < ret.size(); i++)
+		cout << ret[i]->getInfo() << endl;
 }
