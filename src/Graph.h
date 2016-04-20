@@ -39,7 +39,7 @@ public:
 	Vertex(T in);
 	friend class Graph<T, U>;
 
-	void addEdge(Vertex<T, U> *dest, double w);
+	void addEdge(Vertex<T, U> *dest, U &data, double w);
 	bool removeEdgeTo(Vertex<T, U> *d);
 
 	T getInfo() const;
@@ -83,8 +83,8 @@ Vertex<T, U>::Vertex(T in): info(in), visited(false), processing(false), indegre
 
 
 template <class T, class U>
-void Vertex<T, U>::addEdge(Vertex<T, U> *dest, double w) {
-	Edge<T, U> edgeD(dest,w);
+void Vertex<T, U>::addEdge(Vertex<T, U> *dest, U &data, double w) {
+	Edge<T, U> edgeD(dest, data, w);
 	adj.push_back(edgeD);
 }
 
@@ -123,18 +123,24 @@ class Edge {
 	double weight;
 	U data;
 public:
-	Edge(Vertex<T, U> *d, double w);
+	Edge(Vertex<T, U> *d, U data, double w);
 	friend class Graph<T, U>;
 	friend class Vertex<T, U>;
 	bool operator< (Edge<T, U> e) const;
+	U getData() const;
 };
 
 template <class T, class U>
-Edge<T, U>::Edge(Vertex<T, U> *d, double w): dest(d), weight(w){}
+Edge<T, U>::Edge(Vertex<T, U> *d, U data, double w): dest(d), weight(w), data(data) {}
 
 template <class T, class U>
 bool Edge<T, U>::operator< (Edge<T, U> e) const{
 	return weight < e.weight;
+}
+
+template <class T, class U>
+U Edge<T, U>::getData() const {
+	return this->data;
 }
 
 
@@ -160,7 +166,7 @@ class Graph {
 
 public:
 	bool addVertex(const T &in);
-	bool addEdge(const T &sourc, const T &dest, double w);
+	bool addEdge(const T &sourc, const T &dest, U data, double w);
 	bool removeVertex(const T &in);
 	bool removeEdge(const T &sourc, const T &dest);
 	vector<T, U> dfs() const;
@@ -247,7 +253,7 @@ bool Graph<T, U>::removeVertex(const T &in) {
 }
 
 template <class T, class U>
-bool Graph<T, U>::addEdge(const T &sourc, const T &dest, double w) {
+bool Graph<T, U>::addEdge(const T &sourc, const T &dest, U data, double w) {
 	typename vector<Vertex<T, U>*>::iterator it= vertexSet.begin();
 	typename vector<Vertex<T, U>*>::iterator ite= vertexSet.end();
 	int found=0;
@@ -259,9 +265,10 @@ bool Graph<T, U>::addEdge(const T &sourc, const T &dest, double w) {
 			{ vD=*it; found++;}
 		it ++;
 	}
+
 	if (found!=2) return false;
 	vD->indegree++;
-	vS->addEdge(vD,w);
+	vS->addEdge(vD, data, w);
 
 	return true;
 }

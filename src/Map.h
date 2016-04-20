@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <tr1/unordered_map>
+#include <unordered_map>
 #include "Graph.h"
 
 using namespace std;
@@ -36,16 +36,31 @@ class Map {
 		bool getTwoWay() const;
 	};
 
+	class SubRoad {
+	private:
+		long long originId;
+		long long destId;
+		long long roadId;
+	public:
+		SubRoad(long long originId, long long destId, long long roadId);
+		long long getDestId();
+		long long getRoadId();
+	};
+
 private:
-	Graph<Node *, Road *> graph;
-	tr1::unordered_map<long long, Road> roads;
+	Graph<Node, Road> graph;
+	unordered_map<long long, Node> nodes;
+	unordered_map<long long, Road> roads;
+	unordered_multimap<long long, SubRoad> subRoads;
 
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
 	void readSubRoads(ifstream &in);
+	double getDistance(Node n1, Node n2);
 
 public:
 	void readInfo();
+	void fillGraph();
 	Map(){};
 };
 
