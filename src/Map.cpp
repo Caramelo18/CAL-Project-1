@@ -26,14 +26,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-										{
+																								{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-										}
+																								}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -62,6 +62,11 @@ Map::SubRoad::SubRoad(long long originId, long long destId, long long roadId)
 	this->originId = originId;
 	this->destId = destId;
 	this->roadId = roadId;
+}
+
+long long Map::SubRoad::getOriginId()
+{
+	return originId;
 }
 
 long long Map::SubRoad::getDestId()
@@ -240,12 +245,12 @@ void Map::askSource()
 {
 	string input;
 	long long id, destID;
-	cout << "Please insert the starting node ID: ";
+	cout << "Please insert the starting node ID: xx ";
 	//cin >> id;
 	cout << "Please insert the finishing node ID: ";
 	//cin >> destID;
-	id = 4090279347;
-	destID = 4090279350;
+	id = 443817589;
+	destID = 443813102;
 	auto it = nodes.find(id);
 	auto itDest = nodes.find(destID);
 
@@ -261,26 +266,59 @@ void Map::calculateShortestPath(Node source, Node dest)
 	graph.dijkstraShortestPath(source);
 
 	Vertex<Node, Road>* v = graph.getVertex(dest);
-	stack<Vertex<Node, Road>* > buff;
-	buff.push(v);
+	vector<Vertex<Node, Road>* > ret;
+	ret.push_back(v);
 	while(v->path != NULL && !(v->path->getInfo() == source))
 	{
 		v = v->path;
-		buff.push(v);
+		ret.push_back(v);
 	}
 	if( v->path != NULL )
 	{
 		v = v->path;
-		buff.push(v);
+		ret.push_back(v);
 	}
 
-	vector<Vertex<Node, Road>* > ret;
-	while(!buff.empty())
+	for(unsigned int i = ret.size() - 1; i > 0; i--)
 	{
-		ret.push_back(buff.top());
-		buff.pop();
+		cout << ret[i]->getInfo() << "dist: " << ret[i]->getDist() << endl;
+	}
+	cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
+
+}
+
+
+bool Map::sameRoad(Node n1, Node n2)
+{
+	long long r1;
+	long long r2;
+
+	//r1 = subRoads.equal_range()
+	for(auto it = subRoads.begin(); it != subRoads.end(); it++)
+	{
+		if(it->second.getOriginId() == n1.getId())
+		{
+			r1 = it->second.getRoadId();
+			break;
+			/*auto road1 = roads.find(r1);
+			cout << "ID: " << r1 << " Road name: " << road1->second.getRoadName() << endl;*/
+		}
 	}
 
-	for(unsigned int i = 0; i < ret.size(); i++)
-		cout << ret[i]->getInfo() << endl;
+	for(auto it = subRoads.begin(); it != subRoads.end(); it++)
+	{
+		if(it->second.getDestId() == n2.getId())
+		{
+			r2 = it->second.getRoadId();
+			break;
+		}
+	}
+
+	auto road1 = roads.find(r1);
+	auto road2 = roads.find(r2);
+	//cout << road1->second.getId() << " "<< road1->second.getRoadName() << endl;
+	//cout << road2->second.getId() << " "<< road2->second.getRoadName() << endl;
+
+	return (road1->second.getRoadName() == road2->second.getRoadName());
+
 }

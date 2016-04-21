@@ -28,12 +28,12 @@ const int INT_INFINITY = 2147483647;
  */
 template <class T, class U>
 class Vertex {
-//	T info;
+	T info;
 	vector<Edge<T, U>  > adj;
 	bool visited;
 	bool processing;
 	int indegree;
-	int dist;
+	double dist;
 public:
 
 	Vertex(T in);
@@ -45,10 +45,10 @@ public:
 	T getInfo() const;
 	void setInfo(T info);
 
-	int getDist() const;
+	double getDist() const;
 	int getIndegree() const;
-	T info;
 	Vertex* path;
+
 };
 
 
@@ -95,7 +95,7 @@ T Vertex<T, U>::getInfo() const {
 }
 
 template <class T, class U>
-int Vertex<T, U>::getDist() const {
+double Vertex<T, U>::getDist() const {
 	return this->dist;
 }
 
@@ -574,35 +574,39 @@ void Graph<T, U>::bellmanFordShortestPath(const T &s){
 }
 
 template<class T, class U>
-void Graph<T, U>::dijkstraShortestPath(const T &s){
-
-	for(unsigned int i = 0; i < vertexSet.size(); i++) {
+void Graph<T, U>::dijkstraShortestPath(const T &s)
+{
+	for(unsigned int i = 0; i < vertexSet.size(); i++)
+	{
 		vertexSet[i]->path = NULL;
 		vertexSet[i]->dist = INT_INFINITY;
-		vertexSet[i]-> visited = false;
+		vertexSet[i]->visited = false;
 	}
 
 	Vertex<T, U>* v = getVertex(s);
 	v->dist = 0;
-	priority_queue< Vertex<T, U>* > q;
-	q.push(v);
+	vector< Vertex<T, U>* > q;
+	make_heap(q.begin(), q.end(), vertex_greater_than<T, U>());
+	q.push_back(v);
 
-	while( !q.empty() ) {
-		v = q.top(); q.pop();
-		priority_queue<Edge<T, U> > order;
+	while( !q.empty() )
+	{
+		v = q.front();
+		v->visited = true;
+		pop_heap(q.begin(), q.end(), vertex_greater_than<T, U>());
+		q.pop_back();
 		for(unsigned int i = 0; i < v->adj.size(); i++)
-			order.push(v->adj[i]);
-
-		while(!order.empty()){
-			Vertex<T, U>* w = order.top().dest;
-			if( w->dist > v->dist + order.top().weight) {
-				w->dist = v->dist + order.top().weight;
+		{
+			Vertex<T, U>* w = v->adj[i].dest;
+			if( w->dist > v->dist + v->adj[i].weight)
+			{
+				w->dist = v->dist + v->adj[i].weight;
 				w->path = v;
+				q.push_back(w);
 				if(!w->visited)
-					q.push(w);
 					w->visited = true;
+				push_heap(q.begin(), q.end(), vertex_greater_than<T, U>());
 			}
-			order.pop();
 		}
 	}
 }

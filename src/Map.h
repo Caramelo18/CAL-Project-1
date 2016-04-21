@@ -51,6 +51,7 @@ class Map {
 		long long roadId;
 	public:
 		SubRoad(long long originId, long long destId, long long roadId);
+		long long getOriginId();
 		long long getDestId();
 		long long getRoadId();
 	};
@@ -71,6 +72,7 @@ public:
 	void readInfo();
 	void fillGraph();
 	void askSource();
+	bool sameRoad(Node n1, Node n2);
 	Map(){};
 };
 
