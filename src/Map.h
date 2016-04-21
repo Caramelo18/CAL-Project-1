@@ -11,6 +11,8 @@
 #include <vector>
 #include "Graph.h"
 
+#define TOLERANCE 0.000006
+
 using namespace std;
 
 class Map {
@@ -67,6 +69,7 @@ private:
 	void readSubRoads(ifstream &in);
 	double getDistance(Node n1, Node n2);
 	void calculateShortestPath(Node source, Node dest);
+	string getNewDirection(Node source, Node dest);
 
 public:
 	void readInfo();

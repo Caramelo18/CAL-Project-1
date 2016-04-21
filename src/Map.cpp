@@ -26,14 +26,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-																								{
+																																		{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-																								}
+																																		}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -245,12 +245,15 @@ void Map::askSource()
 {
 	string input;
 	long long id, destID;
-	cout << "Please insert the starting node ID: xx ";
+	cout << "Please insert the starting node ID: ";
 	//cin >> id;
-	cout << "Please insert the finishing node ID: ";
+	cout << "Please insert the finishing node ID: \n";
 	//cin >> destID;
+	/*
 	id = 443817589;
-	destID = 443813102;
+	destID = 443813102;*/
+	id = 441803607; //rua 2
+	destID = 1309243906; // rua 22
 	auto it = nodes.find(id);
 	auto itDest = nodes.find(destID);
 
@@ -279,11 +282,32 @@ void Map::calculateShortestPath(Node source, Node dest)
 		ret.push_back(v);
 	}
 
-	for(unsigned int i = ret.size() - 1; i > 0; i--)
+	string prevDir, currDir, tmpDir;
+	double dist, tmpDist1, tmpDist2;
+	dist = 0;
+	/*currDir = getNewDirection(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
+	cout << currDir << endl;*/
+	currDir = getNewDirection(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
+
+	int change = ret.size() - 1;
+	for(unsigned int i = change; i > 0; i--)
 	{
-		cout << ret[i]->getInfo() << "dist: " << ret[i]->getDist() << endl;
+		prevDir = currDir;
+		tmpDir = getNewDirection(ret[i]->getInfo(), ret[i-1]->getInfo());
+
+		if(tmpDir != "")
+			currDir = tmpDir;
+		if(prevDir != currDir)
+		{
+			dist = ret[i]->getDist() - ret[change]->getDist();
+			cout << prevDir << " for " << (int)(dist * 1000) << " meters." << endl;
+			change = i;
+		}
+		//cout << endl << ret[i]->getInfo() << "dist: " << ret[i]->getDist();
 	}
-	cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
+	dist = ret[0]->getDist() - ret[change]->getDist();
+	cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
+	//cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
 
 }
 
@@ -321,4 +345,31 @@ bool Map::sameRoad(Node n1, Node n2)
 
 	return (road1->second.getRoadName() == road2->second.getRoadName());
 
+}
+
+string Map::getNewDirection(Node source, Node dest)
+{
+	double latS, lonS, latD, lonD;
+
+	string dir;
+
+	latS = source.getLatitude();
+	lonS = source.getLongitude();
+	latD = dest.getLatitude();
+	lonD = dest.getLongitude();
+
+	double deltaLon = lonD - lonS;
+	double deltaLat = latD - latS;
+
+	if(deltaLat < 0 && abs(deltaLat) > TOLERANCE)
+		dir += "South";
+	else if(deltaLat > 0 && abs(deltaLat) > TOLERANCE)
+		dir += "North";
+
+	if(deltaLon > 0 && abs(deltaLon) > TOLERANCE)
+		dir += "East";
+	else if(deltaLon < 0 && abs(deltaLon) > TOLERANCE)
+		dir += "West";
+
+	return dir;
 }
