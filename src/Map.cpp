@@ -26,14 +26,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-																																		{
+																																																														{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-																																		}
+																																																														}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -244,23 +244,38 @@ double Map::getDistance(Node n1, Node n2)
 void Map::askSource()
 {
 	string input;
+	stringstream ss;
 	long long id, destID;
-	cout << "Please insert the starting node ID: ";
+	double startLat, startLon, endLat, endLon;
+	/*cout << "Please insert the starting node ID: ";
 	//cin >> id;
 	cout << "Please insert the finishing node ID: \n";
-	//cin >> destID;
+	//cin >> destID;*/
+	cout << "Please insert the starting point coordinates in radians (latitude, longitude): ";
+	getline(cin, input);
+	ss << input;
+	ss >> startLat >> startLon;
+	ss.clear();
+	id = findID(startLat, startLon);
+	auto it = nodes.find(id);
+	if(it == nodes.end())
+		cout << "No such node" << endl;
+	cout << "Please insert the finishing point coordinates in radians (latitude, longitude): ";
+	getline(cin, input);
+	ss << input;
+	ss >> endLat >> endLon;
+	destID = findID(endLat, endLon);
+	auto itDest = nodes.find(destID);
+	if(itDest == nodes.end())
+		cout << "No such node" << endl;
 	/*
 	id = 443817589;
-	destID = 443813102;*/
+	destID = 443813102;
 	id = 441803607; //rua 2
 	destID = 1309243906; // rua 22
-	auto it = nodes.find(id);
-	auto itDest = nodes.find(destID);
+	 */
 
-	if(it == nodes.end() || itDest == nodes.end())
-		cout << "No such node" << endl;
-	else
-		calculateShortestPath(it->second, itDest->second);
+	calculateShortestPath(it->second, itDest->second);
 
 }
 
@@ -282,25 +297,23 @@ void Map::calculateShortestPath(Node source, Node dest)
 		ret.push_back(v);
 	}
 
-	string prevDir, currDir, tmpDir;
-	double dist, tmpDist1, tmpDist2;
-	dist = 0;
-	/*currDir = getNewDirection(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
-	cout << currDir << endl;*/
-	currDir = getNewDirection(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
+	string prevDir, currDir, tmpDir, direction;
+	double dist = 0;
+	currDir = getOrientation(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
 
 	int change = ret.size() - 1;
 	for(unsigned int i = change; i > 0; i--)
 	{
 		prevDir = currDir;
-		tmpDir = getNewDirection(ret[i]->getInfo(), ret[i-1]->getInfo());
+		tmpDir = getOrientation(ret[i]->getInfo(), ret[i-1]->getInfo());
 
 		if(tmpDir != "")
 			currDir = tmpDir;
 		if(prevDir != currDir)
 		{
+			direction = getNewDirection(prevDir, currDir);
 			dist = ret[i]->getDist() - ret[change]->getDist();
-			cout << prevDir << " for " << (int)(dist * 1000) << " meters." << endl;
+			cout << prevDir << " for " << (int)(dist * 1000) << " meters then turn " << direction << endl;
 			change = i;
 		}
 		//cout << endl << ret[i]->getInfo() << "dist: " << ret[i]->getDist();
@@ -312,42 +325,7 @@ void Map::calculateShortestPath(Node source, Node dest)
 }
 
 
-bool Map::sameRoad(Node n1, Node n2)
-{
-	long long r1;
-	long long r2;
-
-	//r1 = subRoads.equal_range()
-	for(auto it = subRoads.begin(); it != subRoads.end(); it++)
-	{
-		if(it->second.getOriginId() == n1.getId())
-		{
-			r1 = it->second.getRoadId();
-			break;
-			/*auto road1 = roads.find(r1);
-			cout << "ID: " << r1 << " Road name: " << road1->second.getRoadName() << endl;*/
-		}
-	}
-
-	for(auto it = subRoads.begin(); it != subRoads.end(); it++)
-	{
-		if(it->second.getDestId() == n2.getId())
-		{
-			r2 = it->second.getRoadId();
-			break;
-		}
-	}
-
-	auto road1 = roads.find(r1);
-	auto road2 = roads.find(r2);
-	//cout << road1->second.getId() << " "<< road1->second.getRoadName() << endl;
-	//cout << road2->second.getId() << " "<< road2->second.getRoadName() << endl;
-
-	return (road1->second.getRoadName() == road2->second.getRoadName());
-
-}
-
-string Map::getNewDirection(Node source, Node dest)
+string Map::getOrientation(Node source, Node dest)
 {
 	double latS, lonS, latD, lonD;
 
@@ -366,10 +344,80 @@ string Map::getNewDirection(Node source, Node dest)
 	else if(deltaLat > 0 && abs(deltaLat) > TOLERANCE)
 		dir += "North";
 
+	//	cout << "Delta Lat: " << deltaLat << " Delta Lon: " << deltaLon << endl;
+
 	if(deltaLon > 0 && abs(deltaLon) > TOLERANCE)
 		dir += "East";
 	else if(deltaLon < 0 && abs(deltaLon) > TOLERANCE)
 		dir += "West";
 
 	return dir;
+}
+
+string Map::getNewDirection(string prevOr, string newOr)
+{
+	size_t prevN = prevOr.find("North");
+	size_t prevS = prevOr.find("South");
+	size_t prevE = prevOr.find("East");
+	size_t prevW = prevOr.find("West");
+
+	if(prevN != string::npos)
+	{
+		size_t newE = newOr.find("East");
+		size_t newW = newOr.find("West");
+		size_t newS = newOr.find("South");
+		if(newE != string::npos)
+			return "right";
+		else if (newW != string::npos)
+			return "left";
+		else if(newS != string::npos)
+			return "turn arround";
+	}
+	else if(prevS != string::npos)
+	{
+		size_t newE = newOr.find("East");
+		size_t newW = newOr.find("West");
+		size_t newN = newOr.find("North");
+		if(newE != string::npos)
+			return "left";
+		else if (newW != string::npos)
+			return "right";
+		else if(newN != string::npos)
+			return "turn arround";
+	}
+	else if(prevE != string::npos)
+	{
+		size_t newN = newOr.find("North");
+		size_t newS = newOr.find("South");
+		size_t newW = newOr.find("West");
+		if(newN != string::npos)
+			return "left";
+		else if (newS != string::npos)
+			return "right";
+		else if(newW != string::npos)
+			return "turn arround";
+	}
+	else if(prevW != string::npos)
+	{
+		size_t newS = newOr.find("South");
+		size_t newN = newOr.find("North");
+		size_t newE = newOr.find("East");
+		if(newS != string::npos)
+			return "left";
+		else if (newN != string::npos)
+			return "right";
+		else if(newE != string::npos)
+			return "turn arround";
+	}
+}
+
+
+long long Map::findID(double latitude, double longitude)
+{
+	for(auto it = nodes.begin(); it != nodes.end(); it++)
+	{
+		Node actual = it->second;
+		if(actual.getLatitude() == latitude && actual.getLongitude() == longitude)
+			return actual.getId();
+	}
 }

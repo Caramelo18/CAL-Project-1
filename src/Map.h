@@ -69,13 +69,14 @@ private:
 	void readSubRoads(ifstream &in);
 	double getDistance(Node n1, Node n2);
 	void calculateShortestPath(Node source, Node dest);
-	string getNewDirection(Node source, Node dest);
+	string getOrientation(Node source, Node dest);
+	string getNewDirection(string prevOr, string newOr);
+	long long findID(double latitude, double longitude);
 
 public:
 	void readInfo();
 	void fillGraph();
 	void askSource();
-	bool sameRoad(Node n1, Node n2);
 	Map(){};
 };
 
