@@ -10,6 +10,7 @@
 #include <stack>
 #include <vector>
 #include "Graph.h"
+#include "graphviewer.h"
 
 #define TOLERANCE 0.0000056
 
@@ -56,6 +57,8 @@ class Map {
 		long long originId;
 		long long destId;
 		long long roadId;
+		long long edgeId;
+		static long long counter;
 	public:
 		SubRoad(long long originId, long long destId, long long roadId);
 		long long getOriginId();
@@ -65,9 +68,11 @@ class Map {
 
 private:
 	Graph<Node, Road> graph;
+
 	unordered_map<long long, Node> nodes;
 	unordered_map<long long, Road> roads;
 	unordered_multimap<long long, SubRoad> subRoads;
+
 
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
@@ -85,6 +90,7 @@ public:
 	void askSource();
 	double getXCoords(long long id);
 	double getYCoords(long long id);
+	void start();
 	Map(){};
 };
 

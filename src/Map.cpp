@@ -28,14 +28,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-{
+		{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-}
+		}
 
 void Map::Node::setType(string type)
 {
@@ -107,7 +107,7 @@ void Map::readInfo()
 	readNodes(in);
 	readRoads(in);
 	readSubRoads(in);
-	readPOI(in);
+	//readPOI(in);
 	fillGraph();
 }
 
@@ -262,6 +262,7 @@ void Map::fillGraph()
 		{
 			SubRoad tempSubRoad = it->second;
 			Node originNode = node->getInfo();
+
 			Node destNode = nodes.at(tempSubRoad.getDestId());
 			Road tempRoad = roads.at(tempSubRoad.getRoadId());
 			double distance = getDistance(originNode, destNode);
@@ -321,7 +322,7 @@ void Map::askSource()
 	destID = 443813102;*/
 	id = 441803607; //rua 2
 	destID = 1309243906; // rua 22
-/*	id = 441803456; // 35 368
+	/*	id = 441803456; // 35 368
 	destID = 768566003; // 27 874*/
 	auto it = nodes.find(id);
 	auto itDest = nodes.find(destID);
@@ -492,4 +493,26 @@ double Map::getYCoords(long long id)
 	double longitude = it->second.getLongitude();
 
 	return 6371 * cos(latitude) * sin(longitude);
+}
+
+long long Map::SubRoad::counter =0;
+
+void Map::start(){
+	GraphViewer test(640,640,false);
+	test.createWindow(900,800);
+	vector<Vertex<Node, Road> *> oui = graph.getVertexSet();
+	for(unsigned int i=0; i< oui.size(); i++){
+		double xdouble = getXCoords(oui[i]->getInfo().getId());
+		double ydouble = getYCoords(oui[i]->getInfo().getId());
+		int x = remainder((xdouble*1000),1000);
+		int y = remainder((ydouble*1000),1000);
+		cout<<x << "   " << y << endl;
+		test.addNode(oui[i]->getInfo().getId(), x , y);
+	}
+	int i=0;
+	for(auto it = subRoads.begin(); it != subRoads.end(); it++ ){
+	test.addEdge(i++, it->second.getOriginId(), it->second.getDestId(), 0);
+	}
+
+	while(test.isRunning()){}
 }
