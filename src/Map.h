@@ -83,6 +83,8 @@ public:
 	void readInfo();
 	void fillGraph();
 	void askSource();
+	double getXCoords(long long id);
+	double getYCoords(long long id);
 	Map(){};
 };
 

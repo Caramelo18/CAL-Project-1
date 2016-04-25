@@ -475,3 +475,21 @@ long long Map::findID(double latitude, double longitude)
 	}
 	return -1;
 }
+
+double Map::getXCoords(long long id)
+{
+	auto it = nodes.find(id);
+	double latitude = it->second.getLatitude();
+	double longitude = it->second.getLongitude();
+
+	return 6371 * cos(latitude) * cos(longitude);
+}
+
+double Map::getYCoords(long long id)
+{
+	auto it = nodes.find(id);
+	double latitude = it->second.getLatitude();
+	double longitude = it->second.getLongitude();
+
+	return 6371 * cos(latitude) * sin(longitude);
+}
