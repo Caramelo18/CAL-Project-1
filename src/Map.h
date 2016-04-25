@@ -11,7 +11,7 @@
 #include <vector>
 #include "Graph.h"
 
-#define TOLERANCE 0.000006
+#define TOLERANCE 0.0000056
 
 using namespace std;
 

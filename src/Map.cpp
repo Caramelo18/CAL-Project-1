@@ -251,7 +251,7 @@ void Map::askSource()
 	//cin >> id;
 	cout << "Please insert the finishing node ID: \n";
 	//cin >> destID;*/
-	cout << "Please insert the starting point coordinates in radians (latitude, longitude): ";
+	/*cout << "Please insert the starting point coordinates in radians (latitude, longitude): ";
 	getline(cin, input);
 	ss << input;
 	ss >> startLat >> startLon;
@@ -267,13 +267,16 @@ void Map::askSource()
 	destID = findID(endLat, endLon);
 	auto itDest = nodes.find(destID);
 	if(itDest == nodes.end())
-		cout << "No such node" << endl;
+		cout << "No such node" << endl;*/
 	/*
 	id = 443817589;
-	destID = 443813102;
+	destID = 443813102;*/
 	id = 441803607; //rua 2
 	destID = 1309243906; // rua 22
-	 */
+/*	id = 441803456; // 35 368
+	destID = 768566003; // 27 874*/
+	auto it = nodes.find(id);
+	auto itDest = nodes.find(destID);
 
 	calculateShortestPath(it->second, itDest->second);
 
@@ -309,7 +312,8 @@ void Map::calculateShortestPath(Node source, Node dest)
 
 		if(tmpDir != "")
 			currDir = tmpDir;
-		if(prevDir != currDir)
+		size_t diff = currDir.find(prevDir);
+		if(diff == string::npos)
 		{
 			direction = getNewDirection(prevDir, currDir);
 			dist = ret[i]->getDist() - ret[change]->getDist();
@@ -320,6 +324,8 @@ void Map::calculateShortestPath(Node source, Node dest)
 	}
 	dist = ret[0]->getDist() - ret[change]->getDist();
 	cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
+	dist = ret[0]->getDist() - ret[ret.size() - 1]->getDist();
+	cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
 	//cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
 
 }
@@ -340,17 +346,16 @@ string Map::getOrientation(Node source, Node dest)
 	double deltaLat = latD - latS;
 
 	if(deltaLat < 0 && abs(deltaLat) > TOLERANCE)
-		dir += "South";
+		dir += "South ";
 	else if(deltaLat > 0 && abs(deltaLat) > TOLERANCE)
-		dir += "North";
-
-	//	cout << "Delta Lat: " << deltaLat << " Delta Lon: " << deltaLon << endl;
+		dir += "North ";
 
 	if(deltaLon > 0 && abs(deltaLon) > TOLERANCE)
 		dir += "East";
 	else if(deltaLon < 0 && abs(deltaLon) > TOLERANCE)
 		dir += "West";
-
+	//cout << "Delta Lat: " << deltaLat << " Delta Lon: " << deltaLon << endl;
+	//cout << "Return: " << dir << endl;
 	return dir;
 }
 
