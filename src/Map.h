@@ -21,6 +21,7 @@ class Map {
 	private:
 		long long nodeId;
 		double longitude, latitude; // in radians
+		string type, name; //for Points of Interest (POI)
 	public:
 		Node(long long nodeId, double longitude, double latitude);
 		long long getId() const;
@@ -32,6 +33,10 @@ class Map {
 			out << "ID: " << node.nodeId << " Latitude: " << node.latitude << " Longitude: " << node.longitude << endl;
 			return out;
 		}
+		void setType(string type);
+		void setName(string name);
+		string getType() const;
+		string getName() const;
 	};
 
 	class Road {
@@ -67,6 +72,7 @@ private:
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
 	void readSubRoads(ifstream &in);
+	void readPOI(ifstream &in);
 	double getDistance(Node n1, Node n2);
 	void calculateShortestPath(Node source, Node dest);
 	string getOrientation(Node source, Node dest);

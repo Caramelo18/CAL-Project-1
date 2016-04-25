@@ -1,0 +1,3 @@
+443813126;atm;
+443803687;fuel;Repsol
+443803686;store;Loja do Ze

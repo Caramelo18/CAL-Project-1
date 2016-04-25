@@ -7,6 +7,8 @@ Map::Node::Node(long long nodeId, double latitude, double longitude)
 	this->nodeId = nodeId;
 	this->latitude = latitude;
 	this->longitude = longitude;
+	this->type = "none";
+	this->name = "none";
 }
 
 long long Map::Node::getId() const
@@ -26,14 +28,34 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-																																																														{
+{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-																																																														}
+}
+
+void Map::Node::setType(string type)
+{
+	this->type = type;
+}
+
+void Map::Node::setName(string name)
+{
+	this->name = name;
+}
+
+string Map::Node::getType() const
+{
+	return type;
+}
+
+string Map::Node::getName() const
+{
+	return name;
+}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -85,6 +107,7 @@ void Map::readInfo()
 	readNodes(in);
 	readRoads(in);
 	readSubRoads(in);
+	readPOI(in);
 	fillGraph();
 }
 
@@ -199,6 +222,31 @@ void Map::readSubRoads(ifstream &in)
 			pair<long long, SubRoad> tempPair2(node2ID, tempSubRoad2);
 			subRoads.insert(tempPair2);
 		}
+	}
+
+	in.close();
+}
+
+void Map::readPOI(ifstream &in)
+{
+	in.open("poi.txt");
+
+	string read, type, name;
+	long long id;
+	char separator = ';';
+	stringstream ss;
+
+	while(!in.eof())
+	{
+		getline(in, read, separator); //reads the ID
+		ss << read;
+		ss >> id;
+		ss.clear();
+		getline(in, type, separator);
+		getline(in, name);
+		auto it = nodes.find(id);
+		it->second.setType(type);
+		it->second.setName(name);
 	}
 
 	in.close();
@@ -425,4 +473,5 @@ long long Map::findID(double latitude, double longitude)
 		if(actual.getLatitude() == latitude && actual.getLongitude() == longitude)
 			return actual.getId();
 	}
+	return -1;
 }
