@@ -26,14 +26,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-		{
+								{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-		}
+								}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -433,7 +433,7 @@ long long Map::findID(double latitude, double longitude)
 {
 	auto range = orderedLatNodes.equal_range(latitude);
 	for (auto it = range.first; it != range.second; ++it) {
-		 shared_ptr<Node> node = it->second;
+		shared_ptr<Node> node = it->second;
 		if (node->getLongitude() == longitude)
 			return node->getId();
 	}
@@ -574,79 +574,132 @@ void Map::start(){
 
 }
 
+vector<string> Map::calculatePath(Node source, Node dest)
+{
+	vector<pair<string, vector<long long> > > stopsVector;
+	shared_ptr<Node> origin = nodes.at(source.getId());
+	string closestType;
+	shared_ptr<Node> closestNode;
+	double closestDist;
+
+	if (bank && atmList.size() > 0)
+		stopsVector.push_back(make_pair("atm", atmList));
+	if (gasStation && fuelList.size() > 0)
+		stopsVector.push_back(make_pair("fuel", fuelList));
+	if (pharmacy && pharmacyList.size() > 0)
+		stopsVector.push_back(make_pair("pharmacy", pharmacyList));
+	if (hospital && hospitalList.size() > 0)
+		stopsVector.push_back(make_pair("hospital", hospitalList));
+	if (restaurant && restaurantList.size() > 0)
+		stopsVector.push_back(make_pair("restaurant", restaurantList));
+
+	while (stopsVector.size() > 0) {
+		closestNode = nodes.at(stopsVector[0].second[0]);
+		closestType = stopsVector[0].first;
+		closestDist = getDistance(*origin, *closestNode);
+
+		for (size_t i = 0; i < stopsVector.size(); ++i) {
+			vector<long long> amenityList = stopsVector[i].second;
+			for (size_t j = 0; j < amenityList.size(); ++j) {
+				shared_ptr<Node> tempNode = nodes.at(amenityList[j]);
+				double tempDist = getDistance(*origin, *tempNode);
+				if (tempDist < closestDist) {
+					closestNode = tempNode;
+					closestType = stopsVector[i].first;
+					closestDist = tempDist;
+				}
+			}
+		}
+
+		for (size_t i = 0; i < stopsVector.size(); ++i) {
+			if (stopsVector[i].first == closestType) {
+				stopsVector.erase(stopsVector.begin() + i);
+				break;
+			}
+		}
+
+		calculateShortestPath(*origin, *closestNode);
+		origin = closestNode;
+	}
+
+	calculateShortestPath(*origin, dest);
+
+
+}
+
 vector<string> Map::calculateShortestPath(Node source, Node dest)
 {
-    //graph.dijkstraShortestPath(source);
+	//graph.dijkstraShortestPath(source);
 
-    vector<string> directions;
-    Vertex<Node, Road>* v = graph.getVertex(dest);
-    vector<Vertex<Node, Road>* > ret;
-    ret.push_back(v);
-    if(v->path==NULL) return directions;
-    while(v->path != NULL && !(v->path->getInfo() == source))
-    {
-        v = v->path;
-        ret.push_back(v);
-    }
-    if( v->path != NULL )
-    {
-        v = v->path;
-        ret.push_back(v);
-    }
+	vector<string> directions;
+	Vertex<Node, Road>* v = graph.getVertex(dest);
+	vector<Vertex<Node, Road>* > ret;
+	ret.push_back(v);
+	if(v->path==NULL) return directions;
+	while(v->path != NULL && !(v->path->getInfo() == source))
+	{
+		v = v->path;
+		ret.push_back(v);
+	}
+	if( v->path != NULL )
+	{
+		v = v->path;
+		ret.push_back(v);
+	}
 
-    string prevDir, currDir, tmpDir, direction;
-    double dist = 0;
-    currDir = getOrientation(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
-    int change = ret.size() - 1;
-    for(unsigned int i = change; i > 0; i--)
-    {
-        prevDir = currDir;
-        tmpDir = getOrientation(ret[i]->getInfo(), ret[i-1]->getInfo());
-        if(tmpDir != "")
-            currDir = tmpDir;
-        size_t diff = currDir.find(prevDir);
-        if(diff == string::npos)
-        {
+	string prevDir, currDir, tmpDir, direction;
+	double dist = 0;
+	currDir = getOrientation(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
+	int change = ret.size() - 1;
+	for(unsigned int i = change; i > 0; i--)
+	{
+		prevDir = currDir;
+		tmpDir = getOrientation(ret[i]->getInfo(), ret[i-1]->getInfo());
+		if(tmpDir != "")
+			currDir = tmpDir;
+		size_t diff = currDir.find(prevDir);
+		if(diff == string::npos)
+		{
 
-            direction = getNewDirection(prevDir, currDir);
-            dist = ret[i]->getDist() - ret[change]->getDist();
-            int distance = (int) (dist * 1000);
-            stringstream ss;
-            string strDist;
-            ss << distance;
-            ss >> strDist;
-            string vDir = prevDir + " for " + strDist + " meters then turn " + direction;
-            directions.push_back(vDir);
-            change = i;
-        }
-        //cout << endl << ret[i]->getInfo() << "dist: " << ret[i]->getDist();
-    }
+			direction = getNewDirection(prevDir, currDir);
+			dist = ret[i]->getDist() - ret[change]->getDist();
+			int distance = (int) (dist * 1000);
+			stringstream ss;
+			string strDist;
+			ss << distance;
+			ss >> strDist;
+			string vDir = prevDir + " for " + strDist + " meters then turn " + direction;
+			directions.push_back(vDir);
+			change = i;
+		}
+		//cout << endl << ret[i]->getInfo() << "dist: " << ret[i]->getDist();
+	}
 
-    string finalDir;
-    dist = ret[0]->getDist() - ret[change]->getDist();
-    int distance = (int) (dist * 1000);
-    stringstream ss;
-    string strDist;
-    ss << distance;
-    ss >> strDist;
-    finalDir = currDir + " for " + strDist + " meters then turn " + direction;
-    directions.push_back(finalDir);
-    ss.clear();
-    //cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
-
-
-    dist = ret[0]->getDist() - ret[ret.size() - 1]->getDist();
-    distance = (int) (dist * 1000);
-    ss << distance;
-    ss >> strDist;
-    direction = "Total distance: " + strDist + " meters.";
-    directions.push_back(direction);
+	string finalDir;
+	dist = ret[0]->getDist() - ret[change]->getDist();
+	int distance = (int) (dist * 1000);
+	stringstream ss;
+	string strDist;
+	ss << distance;
+	ss >> strDist;
+	finalDir = currDir + " for " + strDist + " meters then turn " + direction;
+	directions.push_back(finalDir);
+	ss.clear();
+	//cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
 
 
+	dist = ret[0]->getDist() - ret[ret.size() - 1]->getDist();
+	distance = (int) (dist * 1000);
+	ss << distance;
+	ss >> strDist;
+	direction = "Total distance: " + strDist + " meters.";
+	directions.push_back(direction);
 
-    //cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
-    //cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
-    return directions;
+
+
+	//cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
+	//cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
+	return directions;
 }
 
 void Map::getData(long long &originId, long long &destinationId){

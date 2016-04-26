@@ -88,7 +88,7 @@ private:
 	vector<long long> pharmacyList;
 	vector<long long> restaurantList;
 
-	bool gasStation, pharmacy, airports, hospital, restaurant, bank;
+	bool gasStation, pharmacy, hospital, restaurant, bank;
 
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
@@ -101,6 +101,7 @@ private:
 	long long findID(double latitude, double longitude);
 	long long findClosestNodeID(double latitude, double longitude);
 	void getData(long long &originId, long long &destinationId);
+	vector<string> calculatePath(Node source, Node dest);
 
 
 public:
