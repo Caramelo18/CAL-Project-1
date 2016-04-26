@@ -120,11 +120,13 @@ void Map::readNodes(ifstream &in)
 		//cout << latitude << "  " << longitude << endl;
 		Node tempNode(id, latitude, longitude);
 		graph.addVertex(tempNode);
-		pair<long long, Node> tempPair(id, tempNode);
+
+		shared_ptr<Node> tempPointer(new Node(id, latitude, longitude));
+		pair<long long, shared_ptr<Node> > tempPair(id, tempPointer);
 		nodes.insert(tempPair);
-		pair<double, Node*> orderedLatPair(tempNode.getLatitude(), &tempNode);
+		pair<double, shared_ptr<Node> > orderedLatPair(tempNode.getLatitude(), tempPointer);
 		orderedLatNodes.insert(orderedLatPair);
-		pair<double, Node*> orderedLonPair(tempNode.getLongitude(), &tempNode);
+		pair<double, shared_ptr<Node> > orderedLonPair(tempNode.getLongitude(), tempPointer);
 		orderedLonNodes.insert(orderedLonPair);
 	}
 
@@ -274,12 +276,11 @@ void Map::fillGraph()
 		{
 			SubRoad tempSubRoad = it->second;
 			Node originNode = node->getInfo();
-
-			Node destNode = nodes.at(tempSubRoad.getDestId());
+			shared_ptr<Node> destNode = nodes.at(tempSubRoad.getDestId());
 			Road tempRoad = roads.at(tempSubRoad.getRoadId());
-			double distance = getDistance(originNode, destNode);
+			double distance = getDistance(originNode, *destNode);
 			//	cout << "Origin: " << originNode.getId() << " - Destination: " << destNode.getId() << " - Distance: " << distance << endl;
-			graph.addEdge(node->getInfo(), destNode, tempRoad, distance);
+			graph.addEdge(node->getInfo(), *destNode, tempRoad, distance);
 		}
 	}
 }
@@ -330,8 +331,8 @@ void Map::askSource()
 	if(itDest == nodes.end())
 		cout << "No such node" << endl;*/
 
-	id = 1237293084;
-	destID = 1509299671;
+	id = 4090279480;
+	destID = 1602335210;
 	//id = 441803607; //rua 2
 	//destID = 1309243906; // rua 22
 	//id = 441803456; // 35 368
@@ -339,17 +340,20 @@ void Map::askSource()
 	auto it = nodes.find(id);
 	auto itDest = nodes.find(destID);
 
-	calculateShortestPath(it->second, itDest->second);
+	calculateShortestPath(*it->second, *itDest->second);
 
 }
 
 void Map::calculateShortestPath(Node source, Node dest)
 {
 	graph.dijkstraShortestPath(source);
-
 	Vertex<Node, Road>* v = graph.getVertex(dest);
+
+	cout << v->getInfo() << endl;
+
 	vector<Vertex<Node, Road>* > ret;
 	ret.push_back(v);
+
 	while(v->path != NULL && !(v->path->getInfo() == source))
 	{
 		v = v->path;
@@ -479,7 +483,7 @@ long long Map::findID(double latitude, double longitude)
 {
 	auto range = orderedLatNodes.equal_range(latitude);
 	for (auto it = range.first; it != range.second; ++it) {
-		Node* node = it->second;
+		 shared_ptr<Node> node = it->second;
 		if (node->getLongitude() == longitude)
 			return node->getId();
 	}
@@ -492,35 +496,34 @@ long long Map::findClosestNodeID(double latitude, double longitude) {
 
 	// Search by Latitude
 	auto it = orderedLatNodes.lower_bound(latitude);
-	Node closestNode = *it->second;
-	double currentDistance = getDistance(tempNode, closestNode);
+	shared_ptr<Node> closestNode = it->second;
+	double currentDistance = getDistance(tempNode, *closestNode);
 
-	Node nextNode = *(--it)->second;
-	double nextDistance = getDistance(tempNode, nextNode);
+	shared_ptr<Node> nextNode = (--it)->second;
+	double nextDistance = getDistance(tempNode, *nextNode);
 	if (nextDistance < currentDistance)
 		closestNode = nextNode;
 
 	// Search by Longitude
 	it = orderedLonNodes.lower_bound(longitude);
-	nextNode = *it->second;
-	nextDistance = getDistance(tempNode, nextNode);
+	nextNode = it->second;
+	nextDistance = getDistance(tempNode, *nextNode);
+	if (nextDistance < currentDistance)
+		closestNode = nextNode;
+	nextNode = (--it)->second;
+	nextDistance = getDistance(tempNode, *nextNode);
 	if (nextDistance < currentDistance)
 		closestNode = nextNode;
 
-	nextNode = *(--it)->second;
-	nextDistance = getDistance(tempNode, nextNode);
-	if (nextDistance < currentDistance)
-		closestNode = nextNode;
-
-	return closestNode.getId();
+	return closestNode->getId();
 
 }
 
 double Map::getXCoords(long long id)
 {
 	auto it = nodes.find(id);
-	double latitude = it->second.getLatitude();
-	double longitude = it->second.getLongitude();
+	double latitude = it->second->getLatitude();
+	double longitude = it->second->getLongitude();
 
 	return 6371 * cos(latitude) * cos(longitude);
 }
@@ -528,8 +531,8 @@ double Map::getXCoords(long long id)
 double Map::getYCoords(long long id)
 {
 	auto it = nodes.find(id);
-	double latitude = it->second.getLatitude();
-	double longitude = it->second.getLongitude();
+	double latitude = it->second->getLatitude();
+	double longitude = it->second->getLongitude();
 
 	return 6371 * cos(latitude) * sin(longitude);
 }
@@ -575,9 +578,9 @@ void Map::start(){
 
 			long long currentId = destId;
 			path.push_back(currentId);
-			while(graph.getVertex(nodes.at(currentId))->path != NULL &&
-					graph.getVertex(nodes.at(currentId))->path->getInfo().getId() != orId){
-				currentId = graph.getVertex(nodes.at(currentId))->path->getInfo().getId();
+			while(graph.getVertex(*nodes.at(currentId))->path != NULL &&
+					graph.getVertex(*nodes.at(currentId))->path->getInfo().getId() != orId){
+				currentId = graph.getVertex(*nodes.at(currentId))->path->getInfo().getId();
 				path.push_back(currentId);
 
 			}

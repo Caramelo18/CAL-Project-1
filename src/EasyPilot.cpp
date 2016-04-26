@@ -8,7 +8,7 @@ int main()
 
 	map->start();
 
-	map->askSource();
+	//map->askSource();
 	delete(map);
 	return 0;
 }

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <memory>
 #include <unordered_map>
 #include <map>
 #include <cmath>
@@ -75,12 +76,12 @@ class Map {
 private:
 	Graph<Node, Road> graph;
 
-	unordered_map<long long, Node> nodes;
+	unordered_map<long long, shared_ptr<Node> > nodes;
 	unordered_map<long long, Road> roads;
 	unordered_multimap<long long, SubRoad> subRoads;
 
-	multimap<double, Node*> orderedLatNodes;
-	multimap<double, Node*> orderedLonNodes;
+	multimap<double, shared_ptr<Node> > orderedLatNodes;
+	multimap<double, shared_ptr<Node> > orderedLonNodes;
 
 	vector<long long> atmList;
 	vector<long long> fuelList;
