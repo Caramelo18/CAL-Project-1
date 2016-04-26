@@ -26,14 +26,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-{
+		{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-}
+		}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -62,6 +62,7 @@ Map::SubRoad::SubRoad(long long originId, long long destId, long long roadId)
 	this->originId = originId;
 	this->destId = destId;
 	this->roadId = roadId;
+	this->edgeId = counter++;
 }
 
 long long Map::SubRoad::getOriginId()
@@ -333,7 +334,7 @@ void Map::askSource()
 	destID = 1509299671;
 	//id = 441803607; //rua 2
 	//destID = 1309243906; // rua 22
-		//id = 441803456; // 35 368
+	//id = 441803456; // 35 368
 	//destID = 768566003; // 27 874
 	auto it = nodes.find(id);
 	auto itDest = nodes.find(destID);
@@ -537,6 +538,7 @@ long long Map::SubRoad::counter =0;
 
 void Map::start(){
 	GraphViewer test(640,640,false);
+	//test.defineVertexColor(WHITE);
 	test.createWindow(900,800);
 	vector<Vertex<Node, Road> *> oui = graph.getVertexSet();
 	for(unsigned int i=0; i< oui.size(); i++){
@@ -544,13 +546,109 @@ void Map::start(){
 		double ydouble = getYCoords(oui[i]->getInfo().getId());
 		int x = remainder((xdouble*1000),1000);
 		int y = remainder((ydouble*1000),1000);
-		cout<<x << "   " << y << endl;
 		test.addNode(oui[i]->getInfo().getId(), x , y);
 	}
-	int i=0;
 	for(auto it = subRoads.begin(); it != subRoads.end(); it++ ){
-		test.addEdge(i++, it->second.getOriginId(), it->second.getDestId(), 0);
+		test.addEdge(it->second.edgeId, it->second.getOriginId(), it->second.getDestId(),
+				roads.at(it->second.getRoadId()).getTwoWay()?0:1);
 	}
 
-	while(test.isRunning()){}
+	long long orId, destId;
+	vector<long long> path;
+	vector<long long> edges;
+	while(test.isRunning()){
+		Sleep(2);
+		if(test.isReady()){
+			getData(orId, destId);
+			//this->calculateShortestPath(nodes.at(orId), nodes.at(destId));
+			//graph.dijkstraShortestPath(nodes.at(orId));
+
+			for(unsigned int i=0; i<path.size(); i++){
+				test.setVertexColor(path[i],YELLOW);
+			}
+			for(unsigned int i=0; i< edges.size(); i++){
+				test.setEdgeColor(edges[i],BLACK);
+				test.setEdgeThickness(edges[i],1);
+			}
+			edges.clear();
+			path.clear();
+
+			long long currentId = destId;
+			path.push_back(currentId);
+			while(graph.getVertex(nodes.at(currentId))->path != NULL &&
+					graph.getVertex(nodes.at(currentId))->path->getInfo().getId() != orId){
+				currentId = graph.getVertex(nodes.at(currentId))->path->getInfo().getId();
+				path.push_back(currentId);
+
+			}
+			path.push_back(orId);
+			for(unsigned int i=path.size()-1; i > 0; i--){
+				auto range = subRoads.equal_range(path[i]);
+				for(auto it = range.first; it != range.second; it++){
+					if(it->second.getDestId()==path[i-1]){
+						edges.push_back(it->second.edgeId);
+						break;
+					}
+				}
+			}
+			for(unsigned int i=0; i< edges.size(); i++){
+				test.setEdgeColor(edges[i],BLUE);
+				test.setEdgeThickness(edges[i],10);
+			}
+
+			for(unsigned int i=0; i < path.size(); i++){
+				test.setVertexColor(path[i], GREEN);
+			}
+			test.rearrange();
+			for(int i=5; i>0; i--)
+				test.giveDirections("love like you do lala love me like you do");
+		}
+	}
+}
+
+void Map::getData(long long &originId, long long &destinationId){
+	ifstream i;
+	i.open("data.properties");
+	string line, value;
+	getline(i, line);
+	while(!i.eof()){
+		if(i.good()){
+			getline(i, line, '=');
+			if(line.empty()) break;
+			getline(i,value);
+			switch(line[0]){
+			case AIRPORT:
+				if(value == "false")
+					airport = false;
+				else airport = true;
+				break;
+			case BANK:
+				if(value == "false") bank = false;
+				else bank = true;
+				break;
+			case GASSTATION:
+				if(value == "false") gasStation = false;
+				else gasStation = true;
+				break;
+			case HOSPITAL:
+				if(value == "false") hospital = false;
+				else hospital = true;
+				break;
+			case PHARMACY:
+				if(value == "false") pharmacy = false;
+				else pharmacy = true;
+				break;
+			case RESTAURANT:
+				if(value == "false") restaurant = false;
+				else restaurant = true;
+				break;
+			case ORIGIN:
+				originId = strtoll(value.c_str(), NULL, 10);
+				break;
+			case DESTINATION:
+				destinationId = strtoll(value.c_str(), NULL, 10);
+				break;
+			}
+		}
+	}
 }

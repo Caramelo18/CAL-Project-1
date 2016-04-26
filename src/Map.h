@@ -15,6 +15,14 @@
 #include "graphviewer.h"
 
 #define TOLERANCE 0.0000056
+#define AIRPORT 	'a'
+#define BANK		'b'
+#define GASSTATION	'g'
+#define HOSPITAL	'h'
+#define PHARMACY	'p'
+#define RESTAURANT	'r'
+#define ORIGIN		'o'
+#define DESTINATION	'd'
 
 using namespace std;
 
@@ -54,13 +62,14 @@ class Map {
 		long long originId;
 		long long destId;
 		long long roadId;
-		long long edgeId;
+
 		static long long counter;
 	public:
 		SubRoad(long long originId, long long destId, long long roadId);
 		long long getOriginId();
 		long long getDestId();
 		long long getRoadId();
+		long long edgeId;
 	};
 
 private:
@@ -79,6 +88,8 @@ private:
 	vector<long long> pharmacyList;
 	vector<long long> restaurantList;
 
+	bool gasStation, airport, pharmacy, airports, hospital, restaurant, bank;
+
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
 	void readSubRoads(ifstream &in);
@@ -89,6 +100,7 @@ private:
 	string getNewDirection(string prevOr, string newOr);
 	long long findID(double latitude, double longitude);
 	long long findClosestNodeID(double latitude, double longitude);
+	void getData(long long &originId, long long &destinationId);
 
 public:
 	void readInfo();
