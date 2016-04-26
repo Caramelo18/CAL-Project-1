@@ -6,9 +6,9 @@ int main()
 
 	map->readInfo();
 
-	map->start();
+	//map->start();
 
-	//map->askSource();
+	map->askSource();
 	delete(map);
 	return 0;
 }

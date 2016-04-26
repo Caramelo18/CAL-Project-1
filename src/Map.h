@@ -2,10 +2,12 @@
 #define MAP_H_
 
 #include <string>
+#include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <unordered_map>
+#include <map>
 #include <cmath>
 #include <stack>
 #include <vector>
@@ -22,7 +24,6 @@ class Map {
 	private:
 		long long nodeId;
 		double longitude, latitude; // in radians
-		string type, name; //for Points of Interest (POI)
 	public:
 		Node(long long nodeId, double longitude, double latitude);
 		long long getId() const;
@@ -34,10 +35,6 @@ class Map {
 			out << "ID: " << node.nodeId << " Latitude: " << node.latitude << " Longitude: " << node.longitude << endl;
 			return out;
 		}
-		void setType(string type);
-		void setName(string name);
-		string getType() const;
-		string getName() const;
 	};
 
 	class Road {
@@ -73,6 +70,14 @@ private:
 	unordered_map<long long, Road> roads;
 	unordered_multimap<long long, SubRoad> subRoads;
 
+	multimap<double, Node*> orderedLatNodes;
+	multimap<double, Node*> orderedLonNodes;
+
+	vector<long long> atmList;
+	vector<long long> fuelList;
+	vector<long long> hospitalList;
+	vector<long long> pharmacyList;
+	vector<long long> restaurantList;
 
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
@@ -83,6 +88,7 @@ private:
 	string getOrientation(Node source, Node dest);
 	string getNewDirection(string prevOr, string newOr);
 	long long findID(double latitude, double longitude);
+	long long findClosestNodeID(double latitude, double longitude);
 
 public:
 	void readInfo();

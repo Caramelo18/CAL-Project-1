@@ -7,8 +7,6 @@ Map::Node::Node(long long nodeId, double latitude, double longitude)
 	this->nodeId = nodeId;
 	this->latitude = latitude;
 	this->longitude = longitude;
-	this->type = "none";
-	this->name = "none";
 }
 
 long long Map::Node::getId() const
@@ -28,33 +26,13 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-		{
+{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-		}
-
-void Map::Node::setType(string type)
-{
-	this->type = type;
-}
-
-void Map::Node::setName(string name)
-{
-	this->name = name;
-}
-
-string Map::Node::getType() const
-{
-	return type;
-}
-
-string Map::Node::getName() const
-{
-	return name;
 }
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
@@ -107,7 +85,7 @@ void Map::readInfo()
 	readNodes(in);
 	readRoads(in);
 	readSubRoads(in);
-	//readPOI(in);
+	readPOI(in);
 	fillGraph();
 }
 
@@ -143,6 +121,10 @@ void Map::readNodes(ifstream &in)
 		graph.addVertex(tempNode);
 		pair<long long, Node> tempPair(id, tempNode);
 		nodes.insert(tempPair);
+		pair<double, Node*> orderedLatPair(tempNode.getLatitude(), &tempNode);
+		orderedLatNodes.insert(orderedLatPair);
+		pair<double, Node*> orderedLonPair(tempNode.getLongitude(), &tempNode);
+		orderedLonNodes.insert(orderedLonPair);
 	}
 
 	in.close();
@@ -230,23 +212,52 @@ void Map::readSubRoads(ifstream &in)
 void Map::readPOI(ifstream &in)
 {
 	in.open("poi.txt");
-
-	string read, type, name;
+	string line, type, name;
 	long long id;
-	char separator = ';';
-	stringstream ss;
+	double lat, lon;
 
 	while(!in.eof())
 	{
-		getline(in, read, separator); //reads the ID
-		ss << read;
-		ss >> id;
-		ss.clear();
-		getline(in, type, separator);
-		getline(in, name);
-		auto it = nodes.find(id);
-		it->second.setType(type);
-		it->second.setName(name);
+		getline(in, line);
+
+		int delimID = line.find(";");
+		id = strtoull(line.substr(0, delimID).c_str(), NULL, 10);
+
+		int delimType = line.find(";;", delimID);
+		type = line.substr(delimID + 1, delimType - delimID - 1);
+
+		int delimName = line.find(";;", delimType + 2);
+		name = line.substr(delimType + 2, delimName - delimType - 2);
+
+		int delimLat = line.find(";", delimName + 2);
+		lat = strtod(line.substr(delimName + 2, delimLat - delimName - 2).c_str(), NULL);
+		lat = lat * acos(-1) / 180;
+		lon = strtod(line.substr(delimLat + 1).c_str(), NULL);
+		lon = lon * acos(-1) / 180;
+
+		long long nodeID;
+		if (nodes.count(id) != 0)
+			nodeID = id;
+		else
+			nodeID = findClosestNodeID(lat, lon);
+
+		switch (type[0]) {
+		case 'a':
+			atmList.push_back(nodeID);
+			break;
+		case 'f':
+			fuelList.push_back(nodeID);
+			break;
+		case 'h':
+			hospitalList.push_back(nodeID);
+			break;
+		case 'p':
+			pharmacyList.push_back(nodeID);
+			break;
+		case 'r':
+			restaurantList.push_back(nodeID);
+			break;
+		}
 	}
 
 	in.close();
@@ -317,13 +328,13 @@ void Map::askSource()
 	auto itDest = nodes.find(destID);
 	if(itDest == nodes.end())
 		cout << "No such node" << endl;*/
-	/*
-	id = 443817589;
-	destID = 443813102;*/
-	id = 441803607; //rua 2
-	destID = 1309243906; // rua 22
-	/*	id = 441803456; // 35 368
-	destID = 768566003; // 27 874*/
+
+	id = 1237293084;
+	destID = 1509299671;
+	//id = 441803607; //rua 2
+	//destID = 1309243906; // rua 22
+		//id = 441803456; // 35 368
+	//destID = 768566003; // 27 874
 	auto it = nodes.find(id);
 	auto itDest = nodes.find(destID);
 
@@ -352,13 +363,11 @@ void Map::calculateShortestPath(Node source, Node dest)
 	string prevDir, currDir, tmpDir, direction;
 	double dist = 0;
 	currDir = getOrientation(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
-
 	int change = ret.size() - 1;
 	for(unsigned int i = change; i > 0; i--)
 	{
 		prevDir = currDir;
 		tmpDir = getOrientation(ret[i]->getInfo(), ret[i-1]->getInfo());
-
 		if(tmpDir != "")
 			currDir = tmpDir;
 		size_t diff = currDir.find(prevDir);
@@ -383,7 +392,6 @@ void Map::calculateShortestPath(Node source, Node dest)
 string Map::getOrientation(Node source, Node dest)
 {
 	double latS, lonS, latD, lonD;
-
 	string dir;
 
 	latS = source.getLatitude();
@@ -468,13 +476,43 @@ string Map::getNewDirection(string prevOr, string newOr)
 
 long long Map::findID(double latitude, double longitude)
 {
-	for(auto it = nodes.begin(); it != nodes.end(); it++)
-	{
-		Node actual = it->second;
-		if(actual.getLatitude() == latitude && actual.getLongitude() == longitude)
-			return actual.getId();
+	auto range = orderedLatNodes.equal_range(latitude);
+	for (auto it = range.first; it != range.second; ++it) {
+		Node* node = it->second;
+		if (node->getLongitude() == longitude)
+			return node->getId();
 	}
+
 	return -1;
+}
+
+long long Map::findClosestNodeID(double latitude, double longitude) {
+	Node tempNode(0, latitude, longitude);
+
+	// Search by Latitude
+	auto it = orderedLatNodes.lower_bound(latitude);
+	Node closestNode = *it->second;
+	double currentDistance = getDistance(tempNode, closestNode);
+
+	Node nextNode = *(--it)->second;
+	double nextDistance = getDistance(tempNode, nextNode);
+	if (nextDistance < currentDistance)
+		closestNode = nextNode;
+
+	// Search by Longitude
+	it = orderedLonNodes.lower_bound(longitude);
+	nextNode = *it->second;
+	nextDistance = getDistance(tempNode, nextNode);
+	if (nextDistance < currentDistance)
+		closestNode = nextNode;
+
+	nextNode = *(--it)->second;
+	nextDistance = getDistance(tempNode, nextNode);
+	if (nextDistance < currentDistance)
+		closestNode = nextNode;
+
+	return closestNode.getId();
+
 }
 
 double Map::getXCoords(long long id)
@@ -511,7 +549,7 @@ void Map::start(){
 	}
 	int i=0;
 	for(auto it = subRoads.begin(); it != subRoads.end(); it++ ){
-	test.addEdge(i++, it->second.getOriginId(), it->second.getDestId(), 0);
+		test.addEdge(i++, it->second.getOriginId(), it->second.getDestId(), 0);
 	}
 
 	while(test.isRunning()){}
