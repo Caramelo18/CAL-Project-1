@@ -26,14 +26,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-																{
+																														{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-																}
+																														}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -103,19 +103,21 @@ void Map::readNodes(ifstream &in)
 	while(!in.eof())
 	{
 		getline(in, read, separator); // node_id
-		ss << read;
-		ss >> id;
-		ss.clear();
+		id = strtoll(read.c_str(), NULL,10);
+//		ss.clear();
 		getline(in, read, separator); // latitude_degrees
 		getline(in, read, separator); // longitude_degrees
 		getline(in, read, separator); // longitude_radians
-		ss << setprecision(10) << read;
-		ss >> longitude;
-		ss.clear();
+
+		longitude = strtod(read.c_str(), NULL);	//vejam se conseguem por com isto
+//		ss << setprecision(10) << read;
+//		ss >> longitude;
+//		ss.clear();
 		getline(in, read); // latitude_radians
-		ss << setprecision(10) << read;
-		ss >> latitude;
-		ss.clear();
+		latitude = strtod(read.c_str(), NULL);
+//		ss << setprecision(10) << read;
+//		ss >> latitude;
+//		ss.clear();
 
 		//cout << latitude << "  " << longitude << endl;
 		Node tempNode(id, latitude, longitude);
@@ -147,9 +149,10 @@ void Map::readRoads(ifstream &in)
 	while(!in.eof())
 	{
 		getline(in, read, separator); // road_id
-		ss << read;
-		ss >> roadID;
-		ss.clear();
+		roadID = strtoll(read.c_str(), NULL, 10);
+//		ss << read;
+//		ss >> roadID;
+//		ss.clear();
 		//	cout << "road id: " << roadID;
 
 		getline(in, roadName, separator); // road_name
@@ -182,31 +185,36 @@ void Map::readSubRoads(ifstream &in)
 	while(!in.eof())
 	{
 		getline(in, read, separator); // road_id
-		ss << read;
-		ss >> roadID;
-		ss.clear();
+		roadID = strtoll(read.c_str(), NULL, 10);
+//		ss << read;
+//		ss >> roadID;
+//		ss.clear();
 		//cout << "road id: " << roadID << endl;
 		getline(in, read, separator); // node1_id
-		ss << read;
-		ss >> node1ID;
-		ss.clear();
+		node1ID = strtoll(read.c_str(), NULL, 10);
+//		ss << read;
+//		ss >> node1ID;
+//		ss.clear();
 		//cout << "node 1 id: " << node1ID << endl;
 		getline(in, read, separator); // node2_id
-		ss << read;
-		ss >> node2ID;
-		ss.clear();
+		node2ID = strtoll(read.c_str(), NULL, 10);
+//		ss << read;
+//		ss >> node2ID;
+//		ss.clear();
 		//cout << "node 2 id: " << node2ID << endl;
+
+
 
 		SubRoad tempSubRoad(node1ID, node2ID, roadID);
 		pair<long long, SubRoad> tempPair(node1ID, tempSubRoad);
 		subRoads.insert(tempPair);
 
 		Road tempRoad = roads.at(roadID);
-		if (tempRoad.getTwoWay()) {
+		/*if (tempRoad.getTwoWay()) {
 			SubRoad tempSubRoad2(node2ID, node1ID, roadID);
 			pair<long long, SubRoad> tempPair2(node2ID, tempSubRoad2);
 			subRoads.insert(tempPair2);
-		}
+		}*/
 	}
 
 	in.close();
@@ -244,6 +252,7 @@ void Map::readPOI(ifstream &in)
 		else
 			nodeID = findClosestNodeID(lat, lon);
 
+		cout << name<< "     " << nodeID<<endl;
 		switch (type[0]) {
 		case 'a':
 			atmList.push_back(nodeID);
@@ -280,7 +289,10 @@ void Map::fillGraph()
 			Road tempRoad = roads.at(tempSubRoad.getRoadId());
 			double distance = getDistance(originNode, *destNode);
 			//	cout << "Origin: " << originNode.getId() << " - Destination: " << destNode.getId() << " - Distance: " << distance << endl;
+
 			graph.addEdge(node->getInfo(), *destNode, tempRoad, distance);
+			if(tempRoad.getTwoWay())
+				graph.addEdge(*destNode, node->getInfo(), tempRoad, distance);
 		}
 	}
 }
@@ -388,7 +400,7 @@ string Map::getNewDirection(string prevOr, string newOr)
 		else if (newW != string::npos)
 			return "left";
 		else if(newS != string::npos)
-			return "turn arround";
+			return "turn around";
 	}
 	else if(prevS != string::npos)
 	{
@@ -400,7 +412,7 @@ string Map::getNewDirection(string prevOr, string newOr)
 		else if (newW != string::npos)
 			return "right";
 		else if(newN != string::npos)
-			return "turn arround";
+			return "turn around";
 	}
 	else if(prevE != string::npos)
 	{
@@ -412,7 +424,7 @@ string Map::getNewDirection(string prevOr, string newOr)
 		else if (newS != string::npos)
 			return "right";
 		else if(newW != string::npos)
-			return "turn arround";
+			return "turn around";
 	}
 	else if(prevW != string::npos)
 	{
@@ -424,8 +436,9 @@ string Map::getNewDirection(string prevOr, string newOr)
 		else if (newN != string::npos)
 			return "right";
 		else if(newE != string::npos)
-			return "turn arround";
+			return "turn around";
 	}
+	return "";
 }
 
 
@@ -472,7 +485,6 @@ long long Map::findClosestNodeID(double latitude, double longitude) {
 double Map::getXCoords(long long id)
 {
 	auto it = nodes.find(id);
-	double latitude = it->second->getLatitude();
 	double longitude = it->second->getLongitude();
 
 	return longitude;
@@ -483,7 +495,6 @@ double Map::getYCoords(long long id)
 {
 	auto it = nodes.find(id);
 	double latitude = it->second->getLatitude();
-	double longitude = it->second->getLongitude();
 
 	//return 6371 * cos(latitude) * sin(longitude);
 	return latitude;
@@ -493,7 +504,6 @@ long long Map::SubRoad::counter =0;
 
 void Map::start(){
 	GraphViewer test(640,640,false);
-	//test.defineVertexColor(WHITE);
 	test.createWindow(900,800);
 	vector<Vertex<Node, Road> *> oui = graph.getVertexSet();
 	for(unsigned int i=0; i< oui.size(); i++){
@@ -508,6 +518,7 @@ void Map::start(){
 				roads.at(it->second.getRoadId()).getTwoWay()?0:1);
 		test.setEdgeLabel(it->second.edgeId, roads.at(it->second.getRoadId()).getRoadName());
 	}
+	int calculate = 0;
 
 	long long orId, destId;
 	vector<long long> path;
@@ -517,7 +528,6 @@ void Map::start(){
 		Sleep(59);
 		if(test.isReady()){
 
-
 			for(unsigned int i=0; i<path.size(); i++){
 				test.setVertexColor(path[i],YELLOW);
 			}
@@ -525,23 +535,32 @@ void Map::start(){
 				test.setEdgeColor(edges[i],BLACK);
 				test.setEdgeThickness(edges[i],1);
 			}
+
 			edges.clear();
 			path.clear();
 
 			getData(orId, destId);
+			if(bank || hospital || pharmacy || restaurant || gasStation)
+				calculate =1;
+			else calculate = 0;
+
 			instructions.clear();
-			graph.dijkstraShortestPath(*nodes.at(orId));
-			if(gasStation || pharmacy || hospital || bank || restaurant)
-				instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId));
-			else
+
+			if(calculate > 0){
+				graph.dijkstraShortestPath(*nodes.at(orId));
+				instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges);
+			}
+			else{
+				graph.dijkstraShortestPath(*nodes.at(orId));
 				instructions = this->calculateShortestPath(*nodes.at(orId), *nodes.at(destId));
+			}
+
 			if(instructions.size()==0){
 				test.giveDirections("There is no reachable path to the destination from this point");
 				continue;
 			}
 
-		//	vector<long long> path;
-		//	vector<long long> edges;
+			//if(calculate == 0){
 			long long currentId = destId;
 			path.push_back(currentId);
 			while(graph.getVertex(*nodes.at(currentId))->path != NULL &&
@@ -554,14 +573,29 @@ void Map::start(){
 			path.push_back(orId);
 
 			for(unsigned int i=path.size()-1; i > 0; i--){
+				bool found = false;
 				auto range = subRoads.equal_range(path[i]);
+				auto range2 = subRoads.equal_range(path[i-1]);
 				for(auto it = range.first; it != range.second; it++){
+
 					if(it->second.getDestId()==path[i-1]){
+						edges.push_back(it->second.edgeId);
+						found = true;
+						break;
+					}
+				}
+				if(found)
+					continue;
+				for(auto it = range2.first; it != range2.second; it++){
+
+					if(it->second.getDestId()==path[i]){
 						edges.push_back(it->second.edgeId);
 						break;
 					}
 				}
 			}
+			//	}
+
 			for(unsigned int i=0; i< edges.size(); i++){
 				test.setEdgeColor(edges[i],BLUE);
 				test.setEdgeThickness(edges[i],10);
@@ -575,6 +609,7 @@ void Map::start(){
 			for(unsigned int i=0; i<instructions.size(); i++){
 				test.giveDirections(instructions[i]);
 			}
+
 		}
 		Sleep(40);
 	}
@@ -582,7 +617,8 @@ void Map::start(){
 }
 
 
-vector<string> Map::calculatePath(Node source, Node dest)
+vector<string> Map::calculatePath(Node source, Node dest,
+		vector<long long> &path, vector <long long> &edges)
 {
 	vector<string> result;
 	vector<pair<string, vector<long long> > > stopsVector;
@@ -590,28 +626,52 @@ vector<string> Map::calculatePath(Node source, Node dest)
 	string closestType;
 	shared_ptr<Node> closestNode;
 	double closestDist;
+	vector<long long> atmTemp, gasTemp, pharmTemp, hospTemp, restTemp;
+	if (bank && atmList.size() > 0){
+		for(auto key: atmList)
+			if(graph.getVertex(*nodes.at(key))->path != NULL)
+				atmTemp.push_back(key);
+		stopsVector.push_back(make_pair("atm", atmTemp));
+	}
 
-	if (bank && atmList.size() > 0)
-		stopsVector.push_back(make_pair("atm", atmList));
-	if (gasStation && fuelList.size() > 0)
-		stopsVector.push_back(make_pair("fuel", fuelList));
-	if (pharmacy && pharmacyList.size() > 0)
-		stopsVector.push_back(make_pair("pharmacy", pharmacyList));
-	if (hospital && hospitalList.size() > 0)
-		stopsVector.push_back(make_pair("hospital", hospitalList));
-	if (restaurant && restaurantList.size() > 0)
-		stopsVector.push_back(make_pair("restaurant", restaurantList));
+	if (gasStation && fuelList.size() > 0){
+		for(auto key: fuelList)
+			if(graph.getVertex(*nodes.at(key))->path != NULL)
+				gasTemp.push_back(key);
+		stopsVector.push_back(make_pair("fuel", gasTemp));
+	}
+
+	if (pharmacy && pharmacyList.size() > 0){
+		for(auto key: pharmacyList)
+			if(graph.getVertex(*nodes.at(key))->path != NULL)
+				pharmTemp.push_back(key);
+		stopsVector.push_back(make_pair("pharmacy", pharmTemp));
+	}
+
+	if (hospital && hospitalList.size() > 0){
+		for(auto key: hospitalList)
+			if(graph.getVertex(*nodes.at(key))->path != NULL)
+				hospTemp.push_back(key);
+		stopsVector.push_back(make_pair("hospital", hospTemp));
+	}
+
+	if (restaurant && restaurantList.size() > 0){
+		for(auto key: restaurantList)
+			if(graph.getVertex(*nodes.at(key))->path != NULL)
+				restTemp.push_back(key);
+		stopsVector.push_back(make_pair("restaurant", restTemp));
+	}
 
 	while (stopsVector.size() > 0) {
 		closestNode = nodes.at(stopsVector[0].second[0]);
 		closestType = stopsVector[0].first;
-		closestDist = getDistance(*origin, *closestNode);
+		closestDist = graph.getVertex(*closestNode)->getDist();
 
 		for (size_t i = 0; i < stopsVector.size(); ++i) {
 			vector<long long> amenityList = stopsVector[i].second;
 			for (size_t j = 0; j < amenityList.size(); ++j) {
 				shared_ptr<Node> tempNode = nodes.at(amenityList[j]);
-				double tempDist = getDistance(*origin, *tempNode);
+				double tempDist = graph.getVertex(*tempNode)->getDist();
 				if (tempDist < closestDist) {
 					closestNode = tempNode;
 					closestType = stopsVector[i].first;
@@ -619,7 +679,6 @@ vector<string> Map::calculatePath(Node source, Node dest)
 				}
 			}
 		}
-
 		for (size_t i = 0; i < stopsVector.size(); ++i) {
 			if (stopsVector[i].first == closestType) {
 				stopsVector.erase(stopsVector.begin() + i);
@@ -629,18 +688,56 @@ vector<string> Map::calculatePath(Node source, Node dest)
 		vector<string> part;
 		part = calculateShortestPath(*origin, *closestNode);
 		result.insert(result.end(), part.begin(), part.end());
+
+
+		long long currentId = closestNode->getId();
+		path.push_back(currentId);
+		while(graph.getVertex(*nodes.at(currentId))->path != NULL &&
+				graph.getVertex(*nodes.at(currentId))->path->getInfo().getId() != origin->getId()){
+			currentId = graph.getVertex(*nodes.at(currentId))->path->getInfo().getId();
+			path.push_back(currentId);
+
+		}
+		path.push_back(origin->getId());
+		for(unsigned int i=path.size()-1; i > 0; i--){
+			auto range = subRoads.equal_range(path[i]);
+			for(auto it = range.first; it != range.second; it++){
+				if(it->second.getDestId()==path[i-1]){
+					edges.push_back(it->second.edgeId);
+					break;
+				}
+			}
+		}
 		origin = closestNode;
 		graph.dijkstraShortestPath(*origin);
 	}
 	vector<string> part;
 	part = calculateShortestPath(*origin, dest);
 	result.insert(result.end(), part.begin(), part.end());
+
+	long long currentId = closestNode->getId();
+	path.push_back(currentId);
+	while(graph.getVertex(*nodes.at(currentId))->path != NULL &&
+			graph.getVertex(*nodes.at(currentId))->path->getInfo().getId() != origin->getId()){
+		currentId = graph.getVertex(*nodes.at(currentId))->path->getInfo().getId();
+		path.push_back(currentId);
+
+	}
+	path.push_back(origin->getId());
+	for(unsigned int i=path.size()-1; i > 0; i--){
+		auto range = subRoads.equal_range(path[i]);
+		for(auto it = range.first; it != range.second; it++){
+			if(it->second.getDestId()==path[i-1]){
+				edges.push_back(it->second.edgeId);
+				break;
+			}
+		}
+	}
 	return result;
 }
 
 vector<string> Map::calculateShortestPath(Node source, Node dest)
 {
-	//graph.dijkstraShortestPath(source);
 
 	vector<string> directions;
 	Vertex<Node, Road>* v = graph.getVertex(dest);

@@ -101,7 +101,8 @@ private:
 	long long findID(double latitude, double longitude);
 	long long findClosestNodeID(double latitude, double longitude);
 	void getData(long long &originId, long long &destinationId);
-	vector<string> calculatePath(Node source, Node dest);
+	vector<string> calculatePath(Node source, Node dest,
+			vector<long long> &path, vector <long long> &edges);
 
 
 public:
