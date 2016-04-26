@@ -27,6 +27,7 @@
 using namespace std;
 
 class Map {
+	friend class MapBuilder;
 
 	class Node {
 	private:
@@ -90,27 +91,20 @@ private:
 
 	bool gasStation, pharmacy, hospital, restaurant, bank;
 
-	void readNodes(ifstream &in);
-	void readRoads(ifstream &in);
-	void readSubRoads(ifstream &in);
-	void readPOI(ifstream &in);
-	double getDistance(Node n1, Node n2);
-	vector<string> calculateShortestPath(Node source, Node dest);
-	string getOrientation(Node source, Node dest);
-	string getNewDirection(string prevOr, string newOr);
 	long long findID(double latitude, double longitude);
 	long long findClosestNodeID(double latitude, double longitude);
-	void getData(long long &originId, long long &destinationId);
-	vector<string> calculatePath(Node source, Node dest,
-			vector<long long> &path, vector <long long> &edges);
 
+	double getDistance(Node n1, Node n2);
+	string getOrientation(Node source, Node dest);
+	string getNewDirection(string prevOr, string newOr);
+
+	void getData(long long &originId, long long &destinationId);
+	vector<pair<string, vector<long long> > > getStopsList(vector<string> &instructions);
+	vector<string> calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges);
+	vector<string> calculateShortestPath(const Node &source, const Node &dest);
 
 public:
-	void readInfo();
-	void fillGraph();
 	void askSource();
-	double getXCoords(long long id);
-	double getYCoords(long long id);
 	void start();
 	Map(){};
 };

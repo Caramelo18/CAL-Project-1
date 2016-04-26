@@ -1,14 +1,15 @@
-#include "Map.h"
+#include "MapBuilder.h"
 
 int main()
 {
 	Map* map = new Map();
 
-	map->readInfo();
+	MapBuilder* builder = new MapBuilder(map);
+	delete(builder);
 
 	map->start();
 
-	//map->askSource();
 	delete(map);
+
 	return 0;
 }
