@@ -506,6 +506,7 @@ void Map::start(){
 	for(auto it = subRoads.begin(); it != subRoads.end(); it++ ){
 		test.addEdge(it->second.edgeId, it->second.getOriginId(), it->second.getDestId(),
 				roads.at(it->second.getRoadId()).getTwoWay()?0:1);
+		test.setEdgeLabel(it->second.edgeId, roads.at(it->second.getRoadId()).getRoadName());
 	}
 
 	long long orId, destId;
@@ -513,12 +514,9 @@ void Map::start(){
 	vector<long long> edges;
 	vector<string> instructions;
 	while(test.isRunning()){
-		//Sleep(4);
+		Sleep(59);
 		if(test.isReady()){
-			getData(orId, destId);
-			instructions.clear();
-			instructions = this->calculateShortestPath(*nodes.at(orId), *nodes.at(destId));
-			//graph.dijkstraShortestPath(nodes.at(orId));
+
 
 			for(unsigned int i=0; i<path.size(); i++){
 				test.setVertexColor(path[i],YELLOW);
@@ -529,6 +527,15 @@ void Map::start(){
 			}
 			edges.clear();
 			path.clear();
+
+			getData(orId, destId);
+			instructions.clear();
+			graph.dijkstraShortestPath(*nodes.at(orId));
+			instructions = this->calculateShortestPath(*nodes.at(orId), *nodes.at(destId));
+			if(instructions.size()==0){
+				test.giveDirections("there is no reachable path to the destination from this point");
+				continue;
+			}
 
 			long long currentId = destId;
 			path.push_back(currentId);
@@ -549,10 +556,6 @@ void Map::start(){
 					}
 				}
 			}
-			if(edges.size()==0){
-				test.giveDirections("there is no reachable path to the destination from this point");
-				continue;
-			}
 			for(unsigned int i=0; i< edges.size(); i++){
 				test.setEdgeColor(edges[i],BLUE);
 				test.setEdgeThickness(edges[i],10);
@@ -562,20 +565,24 @@ void Map::start(){
 				test.setVertexColor(path[i], GREEN);
 			}
 			test.rearrange();
-			for(unsigned int i=0; i<instructions.size(); i++)
+			for(unsigned int i=0; i<instructions.size(); i++){
 				test.giveDirections(instructions[i]);
+			}
 		}
+		Sleep(40);
 	}
+
 }
 
 vector<string> Map::calculateShortestPath(Node source, Node dest)
 {
-    graph.dijkstraShortestPath(source);
+    //graph.dijkstraShortestPath(source);
 
     vector<string> directions;
     Vertex<Node, Road>* v = graph.getVertex(dest);
     vector<Vertex<Node, Road>* > ret;
     ret.push_back(v);
+    if(v->path==NULL) return directions;
     while(v->path != NULL && !(v->path->getInfo() == source))
     {
         v = v->path;
@@ -608,7 +615,7 @@ vector<string> Map::calculateShortestPath(Node source, Node dest)
             string strDist;
             ss << distance;
             ss >> strDist;
-            string vDir = prevDir + " for " + strDist + " meters then turn " + direction + "\n";
+            string vDir = prevDir + " for " + strDist + " meters then turn " + direction;
             directions.push_back(vDir);
             change = i;
         }
@@ -622,22 +629,22 @@ vector<string> Map::calculateShortestPath(Node source, Node dest)
     string strDist;
     ss << distance;
     ss >> strDist;
-    finalDir = currDir + " for " + strDist + " meters then turn " + direction + "\n";
+    finalDir = currDir + " for " + strDist + " meters then turn " + direction;
     directions.push_back(finalDir);
     ss.clear();
-    cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
+    //cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
 
 
     dist = ret[0]->getDist() - ret[ret.size() - 1]->getDist();
     distance = (int) (dist * 1000);
     ss << distance;
     ss >> strDist;
-    direction = "Total distance: " + strDist + " meters.\n";
+    direction = "Total distance: " + strDist + " meters.";
     directions.push_back(direction);
 
 
 
-    cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
+    //cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
     //cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
     return directions;
 }
