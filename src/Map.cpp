@@ -343,53 +343,6 @@ void Map::askSource()
 
 }
 
-void Map::calculateShortestPath(Node source, Node dest)
-{
-	graph.dijkstraShortestPath(source);
-
-	Vertex<Node, Road>* v = graph.getVertex(dest);
-	vector<Vertex<Node, Road>* > ret;
-	ret.push_back(v);
-	while(v->path != NULL && !(v->path->getInfo() == source))
-	{
-		v = v->path;
-		ret.push_back(v);
-	}
-	if( v->path != NULL )
-	{
-		v = v->path;
-		ret.push_back(v);
-	}
-
-	string prevDir, currDir, tmpDir, direction;
-	double dist = 0;
-	currDir = getOrientation(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
-	int change = ret.size() - 1;
-	for(unsigned int i = change; i > 0; i--)
-	{
-		prevDir = currDir;
-		tmpDir = getOrientation(ret[i]->getInfo(), ret[i-1]->getInfo());
-		if(tmpDir != "")
-			currDir = tmpDir;
-		size_t diff = currDir.find(prevDir);
-		if(diff == string::npos)
-		{
-			direction = getNewDirection(prevDir, currDir);
-			dist = ret[i]->getDist() - ret[change]->getDist();
-			cout << prevDir << " for " << (int)(dist * 1000) << " meters then turn " << direction << endl;
-			change = i;
-		}
-		//cout << endl << ret[i]->getInfo() << "dist: " << ret[i]->getDist();
-	}
-	dist = ret[0]->getDist() - ret[change]->getDist();
-	cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
-	dist = ret[0]->getDist() - ret[ret.size() - 1]->getDist();
-	cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
-	//cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
-
-}
-
-
 string Map::getOrientation(Node source, Node dest)
 {
 	double latS, lonS, latD, lonD;
@@ -522,7 +475,8 @@ double Map::getXCoords(long long id)
 	double latitude = it->second.getLatitude();
 	double longitude = it->second.getLongitude();
 
-	return 6371 * cos(latitude) * cos(longitude);
+	return longitude;
+	//return 6371 * cos(latitude) * cos(longitude);
 }
 
 double Map::getYCoords(long long id)
@@ -531,7 +485,8 @@ double Map::getYCoords(long long id)
 	double latitude = it->second.getLatitude();
 	double longitude = it->second.getLongitude();
 
-	return 6371 * cos(latitude) * sin(longitude);
+	//return 6371 * cos(latitude) * sin(longitude);
+	return latitude;
 }
 
 long long Map::SubRoad::counter =0;
@@ -544,8 +499,8 @@ void Map::start(){
 	for(unsigned int i=0; i< oui.size(); i++){
 		double xdouble = getXCoords(oui[i]->getInfo().getId());
 		double ydouble = getYCoords(oui[i]->getInfo().getId());
-		int x = remainder((xdouble*1000),1000);
-		int y = remainder((ydouble*1000),1000);
+		int x = remainder((xdouble*10000000),10000);
+		int y = remainder((-ydouble*10000000),10000);
 		test.addNode(oui[i]->getInfo().getId(), x , y);
 	}
 	for(auto it = subRoads.begin(); it != subRoads.end(); it++ ){
@@ -556,11 +511,13 @@ void Map::start(){
 	long long orId, destId;
 	vector<long long> path;
 	vector<long long> edges;
+	vector<string> instructions;
 	while(test.isRunning()){
-		Sleep(2);
+		//Sleep(4);
 		if(test.isReady()){
 			getData(orId, destId);
-			//this->calculateShortestPath(nodes.at(orId), nodes.at(destId));
+			instructions.clear();
+			instructions = this->calculateShortestPath(nodes.at(orId), nodes.at(destId));
 			//graph.dijkstraShortestPath(nodes.at(orId));
 
 			for(unsigned int i=0; i<path.size(); i++){
@@ -582,6 +539,7 @@ void Map::start(){
 
 			}
 			path.push_back(orId);
+
 			for(unsigned int i=path.size()-1; i > 0; i--){
 				auto range = subRoads.equal_range(path[i]);
 				for(auto it = range.first; it != range.second; it++){
@@ -590,6 +548,10 @@ void Map::start(){
 						break;
 					}
 				}
+			}
+			if(edges.size()==0){
+				test.giveDirections("there is no reachable path to the destination from this point");
+				continue;
 			}
 			for(unsigned int i=0; i< edges.size(); i++){
 				test.setEdgeColor(edges[i],BLUE);
@@ -600,10 +562,84 @@ void Map::start(){
 				test.setVertexColor(path[i], GREEN);
 			}
 			test.rearrange();
-			for(int i=5; i>0; i--)
-				test.giveDirections("love like you do lala love me like you do");
+			for(unsigned int i=0; i<instructions.size(); i++)
+				test.giveDirections(instructions[i]);
 		}
 	}
+}
+
+vector<string> Map::calculateShortestPath(Node source, Node dest)
+{
+    graph.dijkstraShortestPath(source);
+
+    vector<string> directions;
+    Vertex<Node, Road>* v = graph.getVertex(dest);
+    vector<Vertex<Node, Road>* > ret;
+    ret.push_back(v);
+    while(v->path != NULL && !(v->path->getInfo() == source))
+    {
+        v = v->path;
+        ret.push_back(v);
+    }
+    if( v->path != NULL )
+    {
+        v = v->path;
+        ret.push_back(v);
+    }
+
+    string prevDir, currDir, tmpDir, direction;
+    double dist = 0;
+    currDir = getOrientation(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
+    int change = ret.size() - 1;
+    for(unsigned int i = change; i > 0; i--)
+    {
+        prevDir = currDir;
+        tmpDir = getOrientation(ret[i]->getInfo(), ret[i-1]->getInfo());
+        if(tmpDir != "")
+            currDir = tmpDir;
+        size_t diff = currDir.find(prevDir);
+        if(diff == string::npos)
+        {
+
+            direction = getNewDirection(prevDir, currDir);
+            dist = ret[i]->getDist() - ret[change]->getDist();
+            int distance = (int) (dist * 1000);
+            stringstream ss;
+            string strDist;
+            ss << distance;
+            ss >> strDist;
+            string vDir = prevDir + " for " + strDist + " meters then turn " + direction + "\n";
+            directions.push_back(vDir);
+            change = i;
+        }
+        //cout << endl << ret[i]->getInfo() << "dist: " << ret[i]->getDist();
+    }
+
+    string finalDir;
+    dist = ret[0]->getDist() - ret[change]->getDist();
+    int distance = (int) (dist * 1000);
+    stringstream ss;
+    string strDist;
+    ss << distance;
+    ss >> strDist;
+    finalDir = currDir + " for " + strDist + " meters then turn " + direction + "\n";
+    directions.push_back(finalDir);
+    ss.clear();
+    cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
+
+
+    dist = ret[0]->getDist() - ret[ret.size() - 1]->getDist();
+    distance = (int) (dist * 1000);
+    ss << distance;
+    ss >> strDist;
+    direction = "Total distance: " + strDist + " meters.\n";
+    directions.push_back(direction);
+
+
+
+    cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
+    //cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
+    return directions;
 }
 
 void Map::getData(long long &originId, long long &destinationId){
@@ -617,11 +653,6 @@ void Map::getData(long long &originId, long long &destinationId){
 			if(line.empty()) break;
 			getline(i,value);
 			switch(line[0]){
-			case AIRPORT:
-				if(value == "false")
-					airport = false;
-				else airport = true;
-				break;
 			case BANK:
 				if(value == "false") bank = false;
 				else bank = true;

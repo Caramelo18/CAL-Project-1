@@ -15,7 +15,6 @@
 #include "graphviewer.h"
 
 #define TOLERANCE 0.0000056
-#define AIRPORT 	'a'
 #define BANK		'b'
 #define GASSTATION	'g'
 #define HOSPITAL	'h'
@@ -88,19 +87,20 @@ private:
 	vector<long long> pharmacyList;
 	vector<long long> restaurantList;
 
-	bool gasStation, airport, pharmacy, airports, hospital, restaurant, bank;
+	bool gasStation, pharmacy, airports, hospital, restaurant, bank;
 
 	void readNodes(ifstream &in);
 	void readRoads(ifstream &in);
 	void readSubRoads(ifstream &in);
 	void readPOI(ifstream &in);
 	double getDistance(Node n1, Node n2);
-	void calculateShortestPath(Node source, Node dest);
+	vector<string> calculateShortestPath(Node source, Node dest);
 	string getOrientation(Node source, Node dest);
 	string getNewDirection(string prevOr, string newOr);
 	long long findID(double latitude, double longitude);
 	long long findClosestNodeID(double latitude, double longitude);
 	void getData(long long &originId, long long &destinationId);
+
 
 public:
 	void readInfo();
