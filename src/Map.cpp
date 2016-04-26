@@ -26,14 +26,14 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-								{
+																{
 	if (this->nodeId == comparable.nodeId &&
 			this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude)
 		return true;
 
 	return false;
-								}
+																}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -531,12 +531,17 @@ void Map::start(){
 			getData(orId, destId);
 			instructions.clear();
 			graph.dijkstraShortestPath(*nodes.at(orId));
-			instructions = this->calculateShortestPath(*nodes.at(orId), *nodes.at(destId));
+			if(gasStation || pharmacy || hospital || bank || restaurant)
+				instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId));
+			else
+				instructions = this->calculateShortestPath(*nodes.at(orId), *nodes.at(destId));
 			if(instructions.size()==0){
-				test.giveDirections("there is no reachable path to the destination from this point");
+				test.giveDirections("There is no reachable path to the destination from this point");
 				continue;
 			}
 
+		//	vector<long long> path;
+		//	vector<long long> edges;
 			long long currentId = destId;
 			path.push_back(currentId);
 			while(graph.getVertex(*nodes.at(currentId))->path != NULL &&
@@ -545,6 +550,7 @@ void Map::start(){
 				path.push_back(currentId);
 
 			}
+
 			path.push_back(orId);
 
 			for(unsigned int i=path.size()-1; i > 0; i--){
@@ -564,6 +570,7 @@ void Map::start(){
 			for(unsigned int i=0; i < path.size(); i++){
 				test.setVertexColor(path[i], GREEN);
 			}
+
 			test.rearrange();
 			for(unsigned int i=0; i<instructions.size(); i++){
 				test.giveDirections(instructions[i]);
@@ -574,8 +581,10 @@ void Map::start(){
 
 }
 
+
 vector<string> Map::calculatePath(Node source, Node dest)
 {
+	vector<string> result;
 	vector<pair<string, vector<long long> > > stopsVector;
 	shared_ptr<Node> origin = nodes.at(source.getId());
 	string closestType;
@@ -617,14 +626,16 @@ vector<string> Map::calculatePath(Node source, Node dest)
 				break;
 			}
 		}
-
-		calculateShortestPath(*origin, *closestNode);
+		vector<string> part;
+		part = calculateShortestPath(*origin, *closestNode);
+		result.insert(result.end(), part.begin(), part.end());
 		origin = closestNode;
+		graph.dijkstraShortestPath(*origin);
 	}
-
-	calculateShortestPath(*origin, dest);
-
-
+	vector<string> part;
+	part = calculateShortestPath(*origin, dest);
+	result.insert(result.end(), part.begin(), part.end());
+	return result;
 }
 
 vector<string> Map::calculateShortestPath(Node source, Node dest)
@@ -660,7 +671,6 @@ vector<string> Map::calculateShortestPath(Node source, Node dest)
 		size_t diff = currDir.find(prevDir);
 		if(diff == string::npos)
 		{
-
 			direction = getNewDirection(prevDir, currDir);
 			dist = ret[i]->getDist() - ret[change]->getDist();
 			int distance = (int) (dist * 1000);
