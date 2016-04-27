@@ -387,8 +387,8 @@ void Map::start()
 				window.giveDirections("Cannot find starting and or destination IDs");
 				continue;
 			}
-			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges);
 
+			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges, window);
 			if(instructions.size()==0)
 			{
 				window.giveDirections("There is no reachable path to the destination from this point");
@@ -462,8 +462,9 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 			for(auto key : atmList)
 				if(graph.getVertex(*nodes.at(key))->path != NULL)
 					atmTemp.push_back(key);
-
-			stopsVector.push_back(make_pair("atm", atmTemp));
+			if(atmTemp.empty())
+				instructions.push_back("There are no ATMs/Banks reachable from this Starting Point");
+			else stopsVector.push_back(make_pair("atm", atmTemp));
 		}
 		else
 		{
@@ -477,24 +478,24 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 			for(auto key : fuelList)
 				if(graph.getVertex(*nodes.at(key))->path != NULL)
 					gasTemp.push_back(key);
-			//	if(gasTemp.empty())
-			//		instructions.push_back("There are no Gas Stations reachable from this Starting Point");
-			stopsVector.push_back(make_pair("fuel", gasTemp));
+			if(gasTemp.empty())
+				instructions.push_back("There are no Gas Stations reachable from this Starting Point");
+			else stopsVector.push_back(make_pair("fuel", gasTemp));
 		}
 		else
 		{
 			instructions.push_back("There are no Gas Stations on the map.");
 		}
 	}
-
 	if (pharmacy)
 	{
 		if (pharmacyList.size() > 0) {
 			for(auto key : pharmacyList)
 				if(graph.getVertex(*nodes.at(key))->path != NULL)
 					pharmTemp.push_back(key);
-
-			stopsVector.push_back(make_pair("pharmacy", pharmTemp));
+			if(pharmTemp.empty())
+				instructions.push_back("There are no Pharmacies reachable from this Starting Point");
+			else stopsVector.push_back(make_pair("pharmacy", pharmTemp));
 		}
 		else
 		{
@@ -508,8 +509,9 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 			for(auto key : hospitalList)
 				if(graph.getVertex(*nodes.at(key))->path != NULL)
 					hospTemp.push_back(key);
-
-			stopsVector.push_back(make_pair("hospital", hospTemp));
+			if(hospTemp.empty())
+				instructions.push_back("There are no Hospitals reachable from this Starting Point");
+			else stopsVector.push_back(make_pair("hospital", hospTemp));
 		}
 		else
 		{
@@ -523,8 +525,9 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 			for(auto key : restaurantList)
 				if(graph.getVertex(*nodes.at(key))->path != NULL)
 					restTemp.push_back(key);
-
-			stopsVector.push_back(make_pair("restaurant", restTemp));
+			if(restTemp.empty())
+				instructions.push_back("There are no Restaurants reachable from this Starting Point");
+			else stopsVector.push_back(make_pair("restaurant", restTemp));
 		}
 		else
 		{
@@ -535,7 +538,7 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 	return stopsVector;
 }
 
-vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges)
+vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges, GraphViewer &window)
 {
 	vector<string> instructions;
 
@@ -547,7 +550,6 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 	graph.dijkstraShortestPath(*origin);
 
 	vector<pair<string, vector<long long> > > stopsVector = getStopsList(instructions);
-
 	while (stopsVector.size() > 0)
 	{
 		closestNode = nodes.at(stopsVector[0].second[0]);
