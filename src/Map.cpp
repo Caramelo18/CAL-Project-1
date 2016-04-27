@@ -306,23 +306,29 @@ void Map::start()
 		if (window.isReady())
 		{
 			for (unsigned int i = 0; i < path.size(); ++i)
-			{
 				window.setVertexColor(path[i], YELLOW);
-			}
 
 			for (unsigned int i = 0; i < edges.size(); ++i)
 			{
 				window.setEdgeColor(edges[i], BLACK);
 				window.setEdgeThickness(edges[i], 1);
 			}
-
 			edges.clear();
 			path.clear();
-
 			instructions.clear();
 
-			getData(orId, destId);
-
+			if(!getData(orId, destId))
+			{
+				window.giveDirections("Error reading node IDs");
+				continue;
+			}
+			auto start = nodes.find(orId);
+			auto end   = nodes.find(destId);
+			if(start == nodes.end() || end == nodes.end())
+			{
+				window.giveDirections("Cannot find starting and or destination IDs");
+				continue;
+			}
 			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges);
 
 			if(instructions.size()==0)
@@ -362,7 +368,6 @@ void Map::start()
 					continue;
 				for(auto it = range2.first; it != range2.second; ++it)
 				{
-
 					if(it->second.getDestId()==path[i]){
 						edges.push_back(it->second.edgeId);
 						break;
@@ -414,7 +419,8 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 			for(auto key : fuelList)
 				if(graph.getVertex(*nodes.at(key))->path != NULL)
 					gasTemp.push_back(key);
-
+		//	if(gasTemp.empty())
+		//		instructions.push_back("There are no Gas Stations reachable from this Starting Point");
 			stopsVector.push_back(make_pair("fuel", gasTemp));
 		}
 		else
@@ -658,7 +664,7 @@ vector<string> Map::calculateShortestPath(const Node &source, const Node &dest)
 	return directions;
 }
 
-void Map::getData(long long &originId, long long &destinationId)
+bool Map::getData(long long &originId, long long &destinationId)
 {
 	ifstream i;
 	i.open("data.properties");
@@ -708,12 +714,16 @@ void Map::getData(long long &originId, long long &destinationId)
 					restaurant = true;
 				break;
 			case ORIGIN:
-				originId = strtoll(value.c_str(), NULL, 10);
+				if((originId = strtoll(value.c_str(), NULL, 10)) == NULL)
+					return false;
 				break;
 			case DESTINATION:
-				destinationId = strtoll(value.c_str(), NULL, 10);
+				if((destinationId = strtoll(value.c_str(), NULL, 10)) == NULL)
+					return false;
 				break;
 			}
 		}
+		else return false;
 	}
+	return true;
 }

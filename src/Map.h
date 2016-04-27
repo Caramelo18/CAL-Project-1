@@ -98,7 +98,7 @@ private:
 	string getOrientation(Node source, Node dest);
 	string getNewDirection(string prevOr, string newOr);
 
-	void getData(long long &originId, long long &destinationId);
+	bool getData(long long &originId, long long &destinationId);
 	vector<pair<string, vector<long long> > > getStopsList(vector<string> &instructions);
 	vector<string> calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges);
 	vector<string> calculateShortestPath(const Node &source, const Node &dest);
