@@ -1,7 +1,8 @@
 #ifndef MAP_H_
 #define MAP_H_
 
-#include <string>
+#include "Graph.h"
+#include "graphviewer.h"
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
@@ -9,22 +10,16 @@
 #include <memory>
 #include <unordered_map>
 #include <map>
-#include <cmath>
-#include <stack>
-#include <vector>
-#include "Graph.h"
-#include "graphviewer.h"
 
-#define TOLERANCE 0.0000056
-#define BANK		'b'
-#define GASSTATION	'g'
-#define HOSPITAL	'h'
-#define PHARMACY	'p'
-#define RESTAURANT	'r'
-#define ORIGIN		'o'
-#define DESTINATION	'd'
 
-using namespace std;
+constexpr double TOLERANCE  = 0.0000056;
+constexpr char BANK = 'b';
+constexpr char GASSTATION = 'g';
+constexpr char HOSPITAL = 'h';
+constexpr char PHARMACY = 'p';
+constexpr char RESTAURANT = 'r';
+constexpr char ORIGIN = 'o';
+constexpr char DESTINATION = 'd';
 
 class Map {
 	friend class MapBuilder;
@@ -100,11 +95,12 @@ private:
 
 	bool getData(long long &originId, long long &destinationId);
 	vector<pair<string, vector<long long> > > getStopsList(vector<string> &instructions);
-	vector<string> calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges);
-	vector<string> calculateShortestPath(const Node &source, const Node &dest);
+	vector<string> calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges, GraphViewer &window);
+	pair<long, vector<string> > calculateShortestPath(const Node &source, const Node &dest);
+
+	void fillPath(const Node &origin, const Node &dest, vector<long long> &path);
 
 public:
-	void askSource();
 	void start();
 	Map(){};
 };

@@ -145,7 +145,7 @@ void MapBuilder::readPOI()
 			nodeID = id;
 		else
 			nodeID = map->findClosestNodeID(lat, lon);
-		 cout << name << "   " << nodeID << "    " << id << endl;
+
 		switch (type[0]) {
 		case 'a':
 			map->atmList.push_back(nodeID);

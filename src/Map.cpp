@@ -1,7 +1,5 @@
 #include "Map.h"
 
-using namespace std;
-
 long long Map::SubRoad::counter = 0;
 
 Map::Node::Node(long long nodeId, double latitude, double longitude)
@@ -28,10 +26,10 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-																																										{
+																																																								{
 	return this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude;
-																																										}
+																																																								}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -80,8 +78,8 @@ long long Map::SubRoad::getRoadId()
 
 double Map::getDistance(Node n1, Node n2)
 {
-	//	Distance calculated using Haversine formula.
-	//  Taken from: http://stackoverflow.com/questions/365826/calculate-distance-between-2-gps-coordinates
+	// Distance calculated using Haversine formula.
+	// Taken from: http://stackoverflow.com/questions/365826/calculate-distance-between-2-gps-coordinates
 	int R = 6371;
 	double res = 1;
 
@@ -94,47 +92,6 @@ double Map::getDistance(Node n1, Node n2)
 	res = R * c;
 
 	return res;
-}
-
-void Map::askSource()
-{
-	string input;
-	stringstream ss;
-	long long id, destID;
-	double startLat, startLon, endLat, endLon;
-	/*cout << "Please insert the starting node ID: ";
-	//cin >> id;
-	cout << "Please insert the finishing node ID: \n";
-	//cin >> destID;*/
-	/*cout << "Please insert the starting point coordinates in radians (latitude, longitude): ";
-	getline(cin, input);
-	ss << input;
-	ss >> startLat >> startLon;
-	ss.clear();
-	id = findID(startLat, startLon);
-	auto it = nodes.find(id);
-	if(it == nodes.end())
-		cout << "No such node" << endl;
-	cout << "Please insert the finishing point coordinates in radians (latitude, longitude): ";
-	getline(cin, input);
-	ss << input;
-	ss >> endLat >> endLon;
-	destID = findID(endLat, endLon);
-	auto itDest = nodes.find(destID);
-	if(itDest == nodes.end())
-		cout << "No such node" << endl;*/
-
-	id = 4090279480;
-	destID = 1602335210;
-	//id = 441803607; //rua 2
-	//destID = 1309243906; // rua 22
-	//id = 441803456; // 35 368
-	//destID = 768566003; // 27 874
-	auto it = nodes.find(id);
-	auto itDest = nodes.find(destID);
-
-	calculateShortestPath(*it->second, *itDest->second);
-
 }
 
 string Map::getOrientation(Node source, Node dest)
@@ -334,7 +291,7 @@ void Map::start()
 	vector<Vertex<Node, Road> *> vertexList = graph.getVertexSet();
 
 	// Filing the GraphViewer with the Nodes
-	for (unsigned int i = 0; i < vertexList.size(); ++i)
+	for (size_t i = 0; i < vertexList.size(); ++i)
 	{
 		double xdouble = vertexList[i]->getInfo().getLongitude();
 		double ydouble = vertexList[i]->getInfo().getLatitude();
@@ -361,10 +318,10 @@ void Map::start()
 		Sleep(100);
 		if (window.isReady())
 		{
-			for (unsigned int i = 0; i < path.size(); ++i)
+			for (size_t i = 0; i < path.size(); ++i)
 				window.setVertexColor(path[i], YELLOW);
 
-			for (unsigned int i = 0; i < edges.size(); ++i)
+			for (size_t i = 0; i < edges.size(); ++i)
 			{
 				window.setEdgeColor(edges[i], BLACK);
 				window.setEdgeThickness(edges[i], 1);
@@ -395,56 +352,18 @@ void Map::start()
 				continue;
 			}
 
-			long long currentId = destId;
-			path.push_back(currentId);
-			while(graph.getVertex(*nodes.at(currentId))->path != NULL &&
-					graph.getVertex(*nodes.at(currentId))->path->getInfo().getId() != orId)
-			{
-				currentId = graph.getVertex(*nodes.at(currentId))->path->getInfo().getId();
-				path.push_back(currentId);
-
+			for (size_t i = 0; i< edges.size(); ++i){
+				window.setEdgeColor(edges[i], BLUE);
+				window.setEdgeThickness(edges[i], 10);
 			}
 
-			path.push_back(orId);
-
-			for(unsigned int i=path.size()-1; i > 0; i--)
-			{
-				bool found = false;
-				auto range = subRoads.equal_range(path[i]);
-				auto range2 = subRoads.equal_range(path[i-1]);
-				for(auto it = range.first; it != range.second; ++it)
-				{
-
-					if(it->second.getDestId()==path[i-1])
-					{
-						edges.push_back(it->second.edgeId);
-						found = true;
-						break;
-					}
-				}
-				if(found)
-					continue;
-				for(auto it = range2.first; it != range2.second; ++it)
-				{
-					if(it->second.getDestId()==path[i]){
-						edges.push_back(it->second.edgeId);
-						break;
-					}
-				}
-			}
-
-			for(unsigned int i=0; i< edges.size(); ++i){
-				window.setEdgeColor(edges[i],BLUE);
-				window.setEdgeThickness(edges[i],10);
-			}
-
-			for(unsigned int i=0; i < path.size(); ++i){
+			for (size_t i = 0; i < path.size(); ++i){
 				window.setVertexColor(path[i], GREEN);
 			}
 
 			window.rearrange();
 
-			for(unsigned int i=0; i<instructions.size(); ++i){
+			for (size_t i = 0; i < instructions.size(); ++i){
 				window.giveDirections(instructions[i]);
 			}
 		}
@@ -541,6 +460,7 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges, GraphViewer &window)
 {
 	vector<string> instructions;
+	int totalDistance = 0;
 
 	string closestType;
 	shared_ptr<Node> closestNode;
@@ -550,6 +470,7 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 	graph.dijkstraShortestPath(*origin);
 
 	vector<pair<string, vector<long long> > > stopsVector = getStopsList(instructions);
+
 	while (stopsVector.size() > 0)
 	{
 		closestNode = nodes.at(stopsVector[0].second[0]);
@@ -582,44 +503,51 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 			}
 		}
 
-		vector<string> part;
-		part = calculateShortestPath(*origin, *closestNode);
-		instructions.insert(instructions.end(), part.begin(), part.end());
-
-		long long currentId = closestNode->getId();
-		Vertex<Map::Node, Map::Road> * currentVertex = graph.getVertex(*nodes.at(currentId));
-		path.push_back(currentId);
-
-		while (currentVertex->path != NULL && currentVertex->path->getInfo().getId() != origin->getId())
-		{
-			currentId = currentVertex->path->getInfo().getId();
-			currentVertex = graph.getVertex(*nodes.at(currentId));
-			path.push_back(currentId);
+		if (closestDist == INT_INFINITY) {
+			stringstream ss;
+			ss << "It isn't possible to reach any " << closestType << " from " << origin->getId() << ".";
+			instructions.push_back(ss.str());
+			continue;
 		}
 
-		path.push_back(origin->getId());
+		pair<long, vector<string> > instPair = calculateShortestPath(*origin, *closestNode);
+		vector<string> instList = instPair.second;
+		totalDistance += instPair.first;
 
+		instructions.insert(instructions.end(), instList.begin(), instList.end());
+
+		stringstream ss;
+		ss << "You've reached the " << closestType << ".";
+		instructions.push_back(ss.str());
+		ss.str("");
+		ss << "The distance covered was: " << instPair.first << " meters.";
+		instructions.push_back(ss.str());
+
+		fillPath(*origin, *closestNode, path);
 
 		origin = closestNode;
 		graph.dijkstraShortestPath(*origin);
 	}
 
-	vector<string> part;
-	part = calculateShortestPath(*origin, dest);
-	instructions.insert(instructions.end(), part.begin(), part.end());
+	pair<long, vector<string> > instPair = calculateShortestPath(*origin, dest);
+	vector<string> instList = instPair.second;
+	totalDistance += instPair.first;
 
-	long long currentId = dest.getId();
-	Vertex<Map::Node, Map::Road> * currentVertex = graph.getVertex(*nodes.at(currentId));
-	path.push_back(currentId);
+	instructions.insert(instructions.end(), instList.begin(), instList.end());
 
-	while (currentVertex->path != NULL && currentVertex->path->getInfo().getId() != origin->getId())
-	{
-		currentId = currentVertex->path->getInfo().getId();
-		currentVertex = graph.getVertex(*nodes.at(currentId));
-		path.push_back(currentId);
+	if (instList.empty()) {
+		stringstream ss;
+		ss << "It isn't possible to reach the destination from " << origin->getId() << ".";
+		instructions.push_back(ss.str());
+	}
+	else {
+		instructions.push_back("You've reached the desired destination.");
+		fillPath(*origin, dest, path);
 	}
 
-	path.push_back(origin->getId());
+	stringstream ss;
+	ss << "The total distance covered was: " << totalDistance << " meters.";
+	instructions.push_back(ss.str());
 
 	for(size_t i = path.size() - 1; i > 0; --i)
 	{
@@ -649,45 +577,53 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 			}
 		}
 	}
+
 	return instructions;
 }
 
-vector<string> Map::calculateShortestPath(const Node &source, const Node &dest)
+pair<long, vector<string> > Map::calculateShortestPath(const Node &source, const Node &dest)
 {
 	vector<string> directions;
 	Vertex<Node, Road>* v = graph.getVertex(dest);
-	vector<Vertex<Node, Road>* > ret;
-	ret.push_back(v);
 
-	if(v->path==NULL)
-		return directions;
+	vector<Vertex<Node, Road>* > path;
+	path.push_back(v);
+
+	if(v->path == NULL)
+		return make_pair(0, directions);
 
 	while(v->path != NULL && !(v->path->getInfo() == source))
 	{
 		v = v->path;
-		ret.push_back(v);
+		path.push_back(v);
 	}
-	if( v->path != NULL )
+
+	if(v->path != NULL)
 	{
 		v = v->path;
-		ret.push_back(v);
+		path.push_back(v);
 	}
 
 	string prevDir, currDir, tmpDir, direction;
 	double dist = 0;
-	currDir = getOrientation(ret[ret.size() - 1]->getInfo(), ret[ret.size() - 2]->getInfo());
-	int change = ret.size() - 1;
-	for(unsigned int i = change; i > 0; i--)
+
+	currDir = getOrientation(path[path.size() - 1]->getInfo(), path[path.size() - 2]->getInfo());
+	int change = path.size() - 1;
+
+	for(size_t i = change; i > 0; i--)
 	{
 		prevDir = currDir;
-		tmpDir = getOrientation(ret[i]->getInfo(), ret[i-1]->getInfo());
+		tmpDir = getOrientation(path[i]->getInfo(), path[i-1]->getInfo());
+
 		if(tmpDir != "")
 			currDir = tmpDir;
+
 		size_t diff = currDir.find(prevDir);
+
 		if(diff == string::npos)
 		{
 			direction = getNewDirection(prevDir, currDir);
-			dist = ret[i]->getDist() - ret[change]->getDist();
+			dist = path[i]->getDist() - path[change]->getDist();
 			int distance = (int) (dist * 1000);
 			stringstream ss;
 			string strDist;
@@ -697,34 +633,23 @@ vector<string> Map::calculateShortestPath(const Node &source, const Node &dest)
 			directions.push_back(vDir);
 			change = i;
 		}
-		//cout << endl << ret[i]->getInfo() << "dist: " << ret[i]->getDist();
 	}
 
 	string finalDir;
-	dist = ret[0]->getDist() - ret[change]->getDist();
+	dist = path[0]->getDist() - path[change]->getDist();
 	int distance = (int) (dist * 1000);
 	stringstream ss;
 	string strDist;
 	ss << distance;
 	ss >> strDist;
-	finalDir = currDir + " for " + strDist + " meters then turn " + direction;
+	finalDir = currDir + " for " + strDist + " meters.";
 	directions.push_back(finalDir);
-	ss.clear();
-	//cout << currDir << " for " << (int) (dist * 1000) << " meters." << endl;
+	ss.str("");
 
-
-	dist = ret[0]->getDist() - ret[ret.size() - 1]->getDist();
+	dist = path[0]->getDist() - path[path.size() - 1]->getDist();
 	distance = (int) (dist * 1000);
-	ss << distance;
-	ss >> strDist;
-	direction = "Total distance: " + strDist + " meters.";
-	directions.push_back(direction);
 
-
-
-	//cout << "Total distance: " << (int) (dist * 1000) << " meters" << endl;
-	//cout << endl << ret[0]->getInfo()  << "dist: " << ret[0]->getDist();
-	return directions;
+	return make_pair(distance, directions);
 }
 
 bool Map::getData(long long &originId, long long &destinationId)
@@ -789,4 +714,19 @@ bool Map::getData(long long &originId, long long &destinationId)
 		else return false;
 	}
 	return true;
+}
+
+void Map::fillPath(const Node &origin, const Node &dest, vector<long long> &path)
+{
+	long long currentId = dest.getId();
+	Vertex<Map::Node, Map::Road> * currentVertex = graph.getVertex(*nodes.at(currentId));
+	path.push_back(currentId);
+
+	while ((currentVertex = currentVertex->path) != NULL && currentVertex->getInfo().getId() != origin.getId())
+	{
+		currentId = currentVertex->getInfo().getId();
+		path.push_back(currentId);
+	}
+
+	path.push_back(origin.getId());
 }
