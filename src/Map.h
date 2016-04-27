@@ -185,7 +185,21 @@ private:
 	 * @return distance between both Nodes
 	 */
 	double getDistance(Node n1, Node n2);
+
+	/*
+	 * Given two nodes gives the movement orientation
+	 * @param source source node
+	 * @param dest destination node
+	 * @return the movement orientation
+	 */
 	string getOrientation(Node source, Node dest);
+
+	/*
+	 * Given two orientations gives turn the direction the user should turn
+	 * @param prevOr the previous orientation
+	 * @param newOr the new orientation
+	 * @return the turn the user should make
+	 */
 	string getNewDirection(string prevOr, string newOr);
 
 	/**
@@ -195,8 +209,32 @@ private:
 	 * @return true if it's successful and false if there's an error reading the node's id's
 	 */
 	bool getData(long long &originId, long long &destinationId);
+
+	/*
+	 * Given the selected points of interest, fills a vector with a pair composed by a string and a vector of ID's
+	 * The first element contains the type of POI that the vector contains.
+	 * The vector includes de ID's of the nodes of that type and that are reachable.
+	 * @param instructions a vector containing the textual instructions to print on the window
+	 * @return the vector containing a type and a vector containing the ID's of the points of the reachable points of interest
+	 */
 	vector<pair<string, vector<long long> > > getStopsList(vector<string> &instructions);
-	vector<string> calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges, GraphViewer &window);
+
+	/*
+	 * Calculates the shortest path between the nodes source and destination passing through the desired points of interest
+	 * @param source the source node
+	 * @param dest the destination node
+	 * @param path a vector containing the id's of the nodes traveled
+	 * @param edges a vector containing the id's of the edges traveled
+	 * @return a vector containing textual instructions like the movement orientation and the turns to take
+	 */
+	vector<string> calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges);
+
+	/*
+	 * Calculates the distance between the two nodes and gathers the textual instructions
+	 * @param source the source node
+	 * @param dest the destination node
+	 * @return a pair containing the distance traveled between two nodes and a vector of textual instructions
+	 */
 	pair<long, vector<string> > getInstructions(const Node &source, const Node &dest);
 
 	/**
@@ -208,6 +246,9 @@ private:
 	void fillPath(const Node &origin, const Node &dest, vector<long long> &path);
 
 public:
+	/**
+	 * Starts the graphic mode, displays the graph and the instructions
+	 */
 	void start();
 	/**
 	 * Map class constructor

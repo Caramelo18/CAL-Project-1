@@ -285,7 +285,7 @@ long long Map::findClosestNodeID(double latitude, double longitude) {
 void Map::start()
 {
 	GraphViewer window(640, 640, false);
-	window.createWindow(900, 800);
+	window.createWindow(900, 750);
 
 	vector<Vertex<Node, Road> *> vertexList = graph.getVertexSet();
 
@@ -344,7 +344,7 @@ void Map::start()
 				continue;
 			}
 
-			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges, window);
+			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges);
 			if(instructions.size()==0)
 			{
 				window.giveDirections("There is no reachable path to the destination from this point");
@@ -456,7 +456,7 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 	return stopsVector;
 }
 
-vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges, GraphViewer &window)
+vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges)
 {
 	vector<string> instructions;
 	int totalDistance = 0;
