@@ -28,10 +28,10 @@ double Map::Node::getLatitude() const
 
 
 bool Map::Node::operator==(const Node& comparable)
-																						{
+																																										{
 	return this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude;
-																						}
+																																										}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -245,26 +245,82 @@ long long Map::findClosestNodeID(double latitude, double longitude) {
 	Node tempNode(0, latitude, longitude);
 
 	// Search by Latitude
-	auto it = orderedLatNodes.lower_bound(latitude);
+	auto tmpit = orderedLatNodes.lower_bound(latitude);
+	auto it = tmpit;
+	auto finalit = orderedLatNodes.end();
 	shared_ptr<Node> closestNode = it->second;
 	double currentDistance = getDistance(tempNode, *closestNode);
 
-	shared_ptr<Node> nextNode = (--it)->second;
-	double nextDistance = getDistance(tempNode, *nextNode);
-	if (nextDistance < currentDistance)
-		closestNode = nextNode;
+	--it;
+
+	for (; it != finalit; --it)
+	{
+		shared_ptr<Node> nextNode = it->second;
+
+		if (latitude - nextNode->getLatitude() > currentDistance)
+			break;
+
+		double nextDistance = getDistance(tempNode, *nextNode);
+		if (nextDistance < currentDistance)
+		{
+			closestNode = nextNode;
+			currentDistance = nextDistance;
+		}
+	}
+
+	it = tmpit;
+
+	for (++it; it != finalit; ++it)
+	{
+		shared_ptr<Node> nextNode = it->second;
+
+		if (nextNode->getLatitude() - latitude > currentDistance)
+			break;
+
+		double nextDistance = getDistance(tempNode, *nextNode);
+		if (nextDistance < currentDistance)
+		{
+			closestNode = nextNode;
+			currentDistance = nextDistance;
+		}
+	}
 
 	// Search by Longitude
-	it = orderedLonNodes.lower_bound(longitude);
-	nextNode = it->second;
-	nextDistance = getDistance(tempNode, *nextNode);
-	if (nextDistance < currentDistance)
-		closestNode = nextNode;
+	tmpit = orderedLonNodes.lower_bound(longitude);
+	it = tmpit;
+	finalit = orderedLonNodes.end();
 
-	nextNode = (--it)->second;
-	nextDistance = getDistance(tempNode, *nextNode);
-	if (nextDistance < currentDistance)
-		closestNode = nextNode;
+	for (; it != finalit; --it)
+	{
+		shared_ptr<Node> nextNode = it->second;
+
+		if (latitude - nextNode->getLatitude() > currentDistance)
+			break;
+
+		double nextDistance = getDistance(tempNode, *nextNode);
+		if (nextDistance < currentDistance)
+		{
+			closestNode = nextNode;
+			currentDistance = nextDistance;
+		}
+	}
+
+	it = tmpit;
+
+	for (++it; it != finalit; ++it)
+	{
+		shared_ptr<Node> nextNode = it->second;
+
+		if (nextNode->getLongitude() - longitude > currentDistance)
+			break;
+
+		double nextDistance = getDistance(tempNode, *nextNode);
+		if (nextDistance < currentDistance)
+		{
+			closestNode = nextNode;
+			currentDistance = nextDistance;
+		}
+	}
 
 	return closestNode->getId();
 
@@ -313,6 +369,7 @@ void Map::start()
 				window.setEdgeColor(edges[i], BLACK);
 				window.setEdgeThickness(edges[i], 1);
 			}
+
 			edges.clear();
 			path.clear();
 			instructions.clear();
@@ -322,6 +379,7 @@ void Map::start()
 				window.giveDirections("Error reading node IDs");
 				continue;
 			}
+
 			auto start = nodes.find(orId);
 			auto end   = nodes.find(destId);
 			if(start == nodes.end() || end == nodes.end())
@@ -419,8 +477,8 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 			for(auto key : fuelList)
 				if(graph.getVertex(*nodes.at(key))->path != NULL)
 					gasTemp.push_back(key);
-		//	if(gasTemp.empty())
-		//		instructions.push_back("There are no Gas Stations reachable from this Starting Point");
+			//	if(gasTemp.empty())
+			//		instructions.push_back("There are no Gas Stations reachable from this Starting Point");
 			stopsVector.push_back(make_pair("fuel", gasTemp));
 		}
 		else
@@ -598,7 +656,10 @@ vector<string> Map::calculateShortestPath(const Node &source, const Node &dest)
 	Vertex<Node, Road>* v = graph.getVertex(dest);
 	vector<Vertex<Node, Road>* > ret;
 	ret.push_back(v);
-	if(v->path==NULL) return directions;
+
+	if(v->path==NULL)
+		return directions;
+
 	while(v->path != NULL && !(v->path->getInfo() == source))
 	{
 		v = v->path;
