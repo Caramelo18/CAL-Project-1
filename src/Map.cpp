@@ -24,12 +24,11 @@ double Map::Node::getLatitude() const
 	return latitude;
 }
 
-
 bool Map::Node::operator==(const Node& comparable)
-																																																								{
+{
 	return this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude;
-																																																								}
+}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -510,7 +509,7 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 			continue;
 		}
 
-		pair<long, vector<string> > instPair = calculateShortestPath(*origin, *closestNode);
+		pair<long, vector<string> > instPair = getInstructions(*origin, *closestNode);
 		vector<string> instList = instPair.second;
 		totalDistance += instPair.first;
 
@@ -529,7 +528,7 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 		graph.dijkstraShortestPath(*origin);
 	}
 
-	pair<long, vector<string> > instPair = calculateShortestPath(*origin, dest);
+	pair<long, vector<string> > instPair = getInstructions(*origin, dest);
 	vector<string> instList = instPair.second;
 	totalDistance += instPair.first;
 
@@ -581,7 +580,7 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 	return instructions;
 }
 
-pair<long, vector<string> > Map::calculateShortestPath(const Node &source, const Node &dest)
+pair<long, vector<string> > Map::getInstructions(const Node &source, const Node &dest)
 {
 	vector<string> directions;
 	Vertex<Node, Road>* v = graph.getVertex(dest);
@@ -629,7 +628,7 @@ pair<long, vector<string> > Map::calculateShortestPath(const Node &source, const
 			string strDist;
 			ss << distance;
 			ss >> strDist;
-			string vDir = prevDir + " for " + strDist + " meters then turn " + direction;
+			string vDir = prevDir + " for " + strDist + " meters then turn " + direction + ".";
 			directions.push_back(vDir);
 			change = i;
 		}
