@@ -285,7 +285,7 @@ long long Map::findClosestNodeID(double latitude, double longitude) {
 void Map::start()
 {
 	GraphViewer window(640, 640, false);
-	window.createWindow(900, 750);
+	window.createWindow(900, 800);
 
 	vector<Vertex<Node, Road> *> vertexList = graph.getVertexSet();
 

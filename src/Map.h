@@ -24,6 +24,7 @@ constexpr char DESTINATION = 'd';
 class Map {
 	friend class MapBuilder;
 
+private:
 	class Node {
 	private:
 		long long nodeId;
@@ -119,7 +120,7 @@ class Map {
 		/**
 		 * SubRoad class constructor
 		 * @param originId the ID of the origin Node
-		 * @param roadId the ID of the destination Node
+		 * @param destId the ID of the destination Node
 		 * @param roadId Road ID
 		 */
 		SubRoad(long long originId, long long destId, long long roadId);
@@ -144,7 +145,7 @@ class Map {
 		long long edgeId;
 	};
 
-private:
+
 	Graph<Node, Road> graph;
 
 	unordered_map<long long, shared_ptr<Node> > nodes;
@@ -204,8 +205,8 @@ private:
 
 	/**
 	 * Gathers data sent from the GraphViewer in the data.properties file
-	 * @param originID id of the origin Node to be updated in this function
-	 * @param destinationID id of the destination Node to be updated in this function
+	 * @param originId id of the origin Node to be updated in this function
+	 * @param destinationId id of the destination Node to be updated in this function
 	 * @return true if it's successful and false if there's an error reading the node's id's
 	 */
 	bool getData(long long &originId, long long &destinationId);
