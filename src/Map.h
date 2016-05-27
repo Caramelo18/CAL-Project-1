@@ -3,6 +3,7 @@
 
 #include "Graph.h"
 #include "graphviewer.h"
+#include "KMP.h"
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
@@ -10,7 +11,7 @@
 #include <memory>
 #include <unordered_map>
 #include <map>
-
+#include <set>
 
 constexpr double TOLERANCE  = 0.0000056;
 constexpr char BANK = 'b';
@@ -246,6 +247,11 @@ private:
 	 */
 	void fillPath(const Node &origin, const Node &dest, vector<long long> &path);
 
+
+	vector<string> findNearestRoadName(string name);
+
+
+	void findNodesByRoad(string name);
 public:
 	/**
 	 * Starts the graphic mode, displays the graph and the instructions

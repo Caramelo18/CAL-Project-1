@@ -25,10 +25,10 @@ double Map::Node::getLatitude() const
 }
 
 bool Map::Node::operator==(const Node& comparable)
-{
+				{
 	return this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude;
-}
+				}
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -343,15 +343,19 @@ void Map::start()
 				window.giveDirections("Cannot find starting and or destination IDs");
 				continue;
 			}
-
+			vector<string> closest = findNearestRoadName("Rua 15");
+			for(auto i = 0; i < closest.size(); i++)
+				cout << "Closest: " << closest[i] << endl;
 			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges);
+
+
 			if(instructions.size()==0)
 			{
 				window.giveDirections("There is no reachable path to the destination from this point");
 				continue;
 			}
 
-			for (size_t i = 0; i< edges.size(); ++i){
+			for (size_t i = 0; i< 10; ++i){
 				window.setEdgeColor(edges[i], BLUE);
 				window.setEdgeThickness(edges[i], 10);
 			}
@@ -365,8 +369,12 @@ void Map::start()
 			for (size_t i = 0; i < instructions.size(); ++i){
 				window.giveDirections(instructions[i]);
 			}
+
+
 		}
 	}
+
+
 }
 
 vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &instructions)
@@ -728,4 +736,51 @@ void Map::fillPath(const Node &origin, const Node &dest, vector<long long> &path
 	}
 
 	path.push_back(origin.getId());
+}
+
+vector<string> Map::findNearestRoadName(string name)
+{
+	vector<string> nearest;
+	long long id;
+	int maxQ = 0;
+
+	for(auto it = roads.begin(); it != roads.end(); ++it)
+	{
+		int q = KMPMatcher(it->second.getRoadName(), name);
+		if(q > maxQ)
+		{
+			nearest.clear();
+			nearest.push_back(it->second.getRoadName());
+			maxQ = q;
+		}
+		else if(q == maxQ)
+			nearest.push_back(it->second.getRoadName());
+	}
+	return nearest;
+}
+
+void Map::findNodesByRoad(string name)
+{
+	set<long long> nodes;
+
+	for(auto it = roads.begin(); it != roads.end(); ++it)
+	{
+		if(it->second.getRoadName() == name)
+		{
+			for(auto it2 = subRoads.begin(); it2 != subRoads.end(); ++it2)
+			{
+				if(it2->second.getRoadId() == it->second.getId())
+				{
+					nodes.insert(it2->second.getOriginId());
+					nodes.insert(it2->second.getDestId());
+				}
+			}
+		}
+	}
+
+	for(auto it = nodes.begin(); it != nodes.end(); it++)
+	{
+		cout << "func " << *it << endl;
+	}
+
 }
