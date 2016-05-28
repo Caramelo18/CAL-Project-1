@@ -25,10 +25,11 @@ double Map::Node::getLatitude() const
 }
 
 bool Map::Node::operator==(const Node& comparable)
-				{
+						{
 	return this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude;
-				}
+						}
+
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
 {
@@ -335,6 +336,8 @@ void Map::start()
 				window.giveDirections("Error reading node IDs");
 				continue;
 			}
+			//orId = findNodeByRoad("Rua 20");
+			//destId = findNodeByRoad("Rua 12");
 
 			auto start = nodes.find(orId);
 			auto end   = nodes.find(destId);
@@ -343,9 +346,8 @@ void Map::start()
 				window.giveDirections("Cannot find starting and or destination IDs");
 				continue;
 			}
-			vector<string> closest = findNearestRoadName("Rua 15");
-			for(auto i = 0; i < closest.size(); i++)
-				cout << "Closest: " << closest[i] << endl;
+
+
 			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges);
 
 
@@ -759,9 +761,9 @@ vector<string> Map::findNearestRoadName(string name)
 	return nearest;
 }
 
-void Map::findNodesByRoad(string name)
+long long Map::findNodeByRoad(string name)
 {
-	set<long long> nodes;
+	set<long long> ids;
 
 	for(auto it = roads.begin(); it != roads.end(); ++it)
 	{
@@ -771,16 +773,26 @@ void Map::findNodesByRoad(string name)
 			{
 				if(it2->second.getRoadId() == it->second.getId())
 				{
-					nodes.insert(it2->second.getOriginId());
-					nodes.insert(it2->second.getDestId());
+					ids.insert(it2->second.getOriginId());
+					ids.insert(it2->second.getDestId());
 				}
 			}
 		}
 	}
 
-	for(auto it = nodes.begin(); it != nodes.end(); it++)
-	{
-		cout << "func " << *it << endl;
-	}
+
+	vector<Node> roadNodes;
+	for(auto it = ids.begin(); it != ids.end(); it++)
+		roadNodes.push_back(*(nodes.at(*it)));
+
+	sort(roadNodes.begin(), roadNodes.end());
+	/*for(int i = 0; i < roadNodes.size(); ++i)
+		cout << i << " " << roadNodes[i] << endl;*/
+
+	int index = roadNodes.size() / 2;
+
+	return roadNodes[index].getId();
+
+
 
 }

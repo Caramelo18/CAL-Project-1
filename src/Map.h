@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <map>
 #include <set>
+#include <algorithm>
 
 constexpr double TOLERANCE  = 0.0000056;
 constexpr char BANK = 'b';
@@ -75,7 +76,14 @@ private:
 			out << "ID: " << node.nodeId << " Latitude: " << node.latitude << " Longitude: " << node.longitude << endl;
 			return out;
 		}
+		bool operator<(const Node &n2)
+		{
+			if(longitude == n2.getLongitude())
+				return latitude < n2.getLatitude();
+			return latitude < n2.getLatitude();
+		}
 	};
+
 
 	class Road {
 	private:
@@ -251,7 +259,7 @@ private:
 	vector<string> findNearestRoadName(string name);
 
 
-	void findNodesByRoad(string name);
+	long long findNodeByRoad(string name);
 public:
 	/**
 	 * Starts the graphic mode, displays the graph and the instructions
