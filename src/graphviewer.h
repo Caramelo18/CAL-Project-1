@@ -182,6 +182,8 @@ class GraphViewer {
 
   bool giveDirections(string directions);
 
+  bool giveAlternatives(string street);
+
 #ifdef linux
   static pid_t procId;
 #endif

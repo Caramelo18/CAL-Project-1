@@ -222,3 +222,10 @@ bool GraphViewer::giveDirections(string directions){
 	string str(buff);
 	return con->sendMsg(str);
 }
+
+bool GraphViewer::giveAlternatives(string street){
+	char buff[200];
+	sprintf(buff, "giveAlternatives %s\n", street.c_str());
+	string str(buff);
+	return con->sendMsg(str);
+}
