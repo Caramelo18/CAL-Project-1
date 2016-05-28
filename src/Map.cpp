@@ -25,10 +25,10 @@ double Map::Node::getLatitude() const
 }
 
 bool Map::Node::operator==(const Node& comparable)
-						{
+										{
 	return this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude;
-						}
+										}
 
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
@@ -336,27 +336,36 @@ void Map::start()
 				window.giveDirections("Error reading node IDs");
 				continue;
 			}
-			cout<<destination << endl;
+
 			if(street){
-				window.giveAlternatives("hey");
-				//alternatives = findNearestRoadName(destination);
-				/*if(alternatives.empty()){
+				//window.giveAlternatives("hey");
+				alternatives = findNearestRoadName(destination);
+				if(alternatives.empty()){
 					window.giveDirections("Couldn't find road " + destination);
 					continue;
 				}
 				if(alternatives.size() == 1 && alternatives[0] == destination)
+				{
+					destId = findNodeByRoad(destination);
+				}
+				else
 				{
 					for(auto i=0; i<alternatives.size(); i++){
 						window.giveAlternatives(alternatives[i]);
 					}
 					continue;
 				}
-				else destId = findNodeByRoad(destination);*/
 			}
-			else destId = strtoll(destination.c_str(), NULL, 10);
+			else if((destId = strtoll(destination.c_str(), NULL, 10)) == 0LL)
+			{
+				window.giveDirections("Error reading node IDs");
+				continue;
+			}
 			cout<<"poeira\n";
+
 			auto start = nodes.find(orId);
 			auto end   = nodes.find(destId);
+
 			if(start == nodes.end() || end == nodes.end())
 			{
 				window.giveDirections("Cannot find starting and or destination IDs");
@@ -573,31 +582,34 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 	ss << "The total distance covered was: " << totalDistance << " meters.";
 	instructions.push_back(ss.str());
 
-	for(size_t i = path.size() - 1; i > 0; --i)
+	if(path.size() != 0)
 	{
-		bool found = false;
-		auto range = subRoads.equal_range(path[i]);
-		auto range2 = subRoads.equal_range(path[i-1]);
-
-		for(auto it = range.first; it != range.second; ++it)
+		for(size_t i = path.size() - 1; i > 0; --i)
 		{
-			if(it->second.getDestId()==path[i-1])
+			bool found = false;
+			auto range = subRoads.equal_range(path[i]);
+			auto range2 = subRoads.equal_range(path[i-1]);
+
+			for(auto it = range.first; it != range.second; ++it)
 			{
-				found = true;
-				edges.push_back(it->second.edgeId);
-				break;
+				if(it->second.getDestId()==path[i-1])
+				{
+					found = true;
+					edges.push_back(it->second.edgeId);
+					break;
+				}
 			}
-		}
 
-		if(found)
-			continue;
+			if(found)
+				continue;
 
-		for(auto it = range2.first; it != range2.second; it++)
-		{
-			if(it->second.getDestId()==path[i])
+			for(auto it = range2.first; it != range2.second; it++)
 			{
-				edges.push_back(it->second.edgeId);
-				break;
+				if(it->second.getDestId()==path[i])
+				{
+					edges.push_back(it->second.edgeId);
+					break;
+				}
 			}
 		}
 	}
@@ -726,7 +738,7 @@ bool Map::getData(long long &originId, string &destination)
 					restaurant = true;
 				break;
 			case ORIGIN:
-				if((originId = strtoll(value.c_str(), NULL, 10)) == NULL)
+				if((originId = strtoll(value.c_str(), NULL, 10)) == 0LL)
 					return false;
 				break;
 			case DESTINATION:
@@ -767,6 +779,7 @@ vector<string> Map::findNearestRoadName(string name)
 	vector<string> nearest;
 	long long id;
 	int maxQ = 0;
+	bool found = false;
 
 	for(auto it = roads.begin(); it != roads.end(); ++it)
 	{
@@ -774,11 +787,17 @@ vector<string> Map::findNearestRoadName(string name)
 		if(q > maxQ)
 		{
 			nearest.clear();
-			nearest.push_back(it->second.getRoadName());
 			maxQ = q;
 		}
-		else if(q == maxQ)
-			nearest.push_back(it->second.getRoadName());
+		if(q == maxQ )//&& !found)
+		{
+			if(!found)
+				nearest.push_back(it->second.getRoadName());
+
+			if(it->second.getRoadName() == name)
+				found = true;
+		}
+
 	}
 	return nearest;
 }
