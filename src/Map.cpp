@@ -336,8 +336,10 @@ void Map::start()
 				window.giveDirections("Error reading node IDs");
 				continue;
 			}
+			if(street){
 			//orId = findNodeByRoad("Rua 20");
-			//destId = findNodeByRoad("Rua 12");
+				destId = findNodeByRoad("Rua 12");
+			}
 
 			auto start = nodes.find(orId);
 			auto end   = nodes.find(destId);
@@ -371,7 +373,6 @@ void Map::start()
 			for (size_t i = 0; i < instructions.size(); ++i){
 				window.giveDirections(instructions[i]);
 			}
-
 
 		}
 	}
@@ -667,6 +668,7 @@ bool Map::getData(long long &originId, long long &destinationId)
 	i.open("data.properties");
 
 	string line, value;
+	string dest;
 	getline(i, line);
 
 	while(!i.eof())
@@ -715,8 +717,15 @@ bool Map::getData(long long &originId, long long &destinationId)
 					return false;
 				break;
 			case DESTINATION:
+				dest = value;
 				if((destinationId = strtoll(value.c_str(), NULL, 10)) == NULL)
 					return false;
+				break;
+			case STREET:
+				if(value == "false")
+					street = false;
+				else
+					street = true;
 				break;
 			}
 		}

@@ -22,6 +22,7 @@ constexpr char PHARMACY = 'p';
 constexpr char RESTAURANT = 'r';
 constexpr char ORIGIN = 'o';
 constexpr char DESTINATION = 'd';
+constexpr char STREET = 's';
 
 class Map {
 	friend class MapBuilder;
@@ -76,7 +77,7 @@ private:
 			out << "ID: " << node.nodeId << " Latitude: " << node.latitude << " Longitude: " << node.longitude << endl;
 			return out;
 		}
-		bool operator<(const Node &n2)
+		bool operator<(const Node &n2) const
 		{
 			if(longitude == n2.getLongitude())
 				return latitude < n2.getLatitude();
@@ -170,7 +171,7 @@ private:
 	vector<long long> pharmacyList;
 	vector<long long> restaurantList;
 
-	bool gasStation, pharmacy, hospital, restaurant, bank;
+	bool gasStation, pharmacy, hospital, restaurant, bank, street;
 
 	/**
 	 * Given the coordinates of a Node, finds its ID.
