@@ -307,11 +307,12 @@ void Map::start()
 				roads.at(it->second.getRoadId()).getTwoWay() ? 0 : 1);
 		window.setEdgeLabel(it->second.edgeId, roads.at(it->second.getRoadId()).getRoadName());
 	}
-
+	string destination;
 	long long orId, destId;
 	vector<long long> edges;
 	vector<long long> path;
 	vector<string> instructions;
+	vector<string> alternatives;
 
 	while(window.isRunning())
 	{
@@ -330,17 +331,30 @@ void Map::start()
 			edges.clear();
 			path.clear();
 			instructions.clear();
-
-			if(!getData(orId, destId))
+			if(!getData(orId, destination))
 			{
 				window.giveDirections("Error reading node IDs");
 				continue;
 			}
+			cout<<destination << endl;
 			if(street){
-			//orId = findNodeByRoad("Rua 20");
-				destId = findNodeByRoad("Rua 12");
+				window.giveAlternatives("hey");
+				//alternatives = findNearestRoadName(destination);
+				/*if(alternatives.empty()){
+					window.giveDirections("Couldn't find road " + destination);
+					continue;
+				}
+				if(alternatives.size() == 1 && alternatives[0] == destination)
+				{
+					for(auto i=0; i<alternatives.size(); i++){
+						window.giveAlternatives(alternatives[i]);
+					}
+					continue;
+				}
+				else destId = findNodeByRoad(destination);*/
 			}
-
+			else destId = strtoll(destination.c_str(), NULL, 10);
+			cout<<"poeira\n";
 			auto start = nodes.find(orId);
 			auto end   = nodes.find(destId);
 			if(start == nodes.end() || end == nodes.end())
@@ -359,7 +373,7 @@ void Map::start()
 				continue;
 			}
 
-			for (size_t i = 0; i< 10; ++i){
+			for (size_t i = 0; i< edges.size(); ++i){
 				window.setEdgeColor(edges[i], BLUE);
 				window.setEdgeThickness(edges[i], 10);
 			}
@@ -662,13 +676,12 @@ pair<long, vector<string> > Map::getInstructions(const Node &source, const Node 
 	return make_pair(distance, directions);
 }
 
-bool Map::getData(long long &originId, long long &destinationId)
+bool Map::getData(long long &originId, string &destination)
 {
 	ifstream i;
 	i.open("data.properties");
 
 	string line, value;
-	string dest;
 	getline(i, line);
 
 	while(!i.eof())
@@ -680,7 +693,7 @@ bool Map::getData(long long &originId, long long &destinationId)
 				break;
 
 			getline(i, value);
-
+			cout << value << endl;
 			switch (line[0]) {
 			case BANK:
 				if(value == "false")
@@ -717,8 +730,8 @@ bool Map::getData(long long &originId, long long &destinationId)
 					return false;
 				break;
 			case DESTINATION:
-				dest = value;
-				if((destinationId = strtoll(value.c_str(), NULL, 10)) == NULL)
+				destination = value;
+				if(destination == "click/write node ID" || destination == "write street name")
 					return false;
 				break;
 			case STREET:

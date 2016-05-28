@@ -219,7 +219,7 @@ private:
 	 * @param destinationId id of the destination Node to be updated in this function
 	 * @return true if it's successful and false if there's an error reading the node's id's
 	 */
-	bool getData(long long &originId, long long &destinationId);
+	bool getData(long long &originId, string &destination);
 
 	/*
 	 * Given the selected points of interest, fills a vector with a pair composed by a string and a vector of ID's
