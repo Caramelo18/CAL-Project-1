@@ -336,7 +336,7 @@ void Map::start()
 				window.giveDirections("Error reading node IDs");
 				continue;
 			}
-
+			vector<Node> dest;
 			if(street){
 				//window.giveAlternatives("hey");
 				alternatives = findNearestRoadName(destination);
@@ -346,7 +346,7 @@ void Map::start()
 				}
 				if(alternatives.size() == 1 && alternatives[0] == destination)
 				{
-					destId = findNodeByRoad(destination);
+					dest = findNodeByRoad(destination);
 				}
 				else
 				{
@@ -356,24 +356,26 @@ void Map::start()
 					continue;
 				}
 			}
-			else if((destId = strtoll(destination.c_str(), NULL, 10)) == 0LL)
-			{
-				window.giveDirections("Error reading node IDs");
-				continue;
+			else {
+				if((destId = strtoll(destination.c_str(), NULL, 10)) == 0LL)
+
+				{
+					window.giveDirections("Error reading node IDs");
+					continue;
+				}
+				cout<<"poeira\n";
+
+				auto start = nodes.find(orId);
+				auto end   = nodes.find(destId);
+
+				if(start == nodes.end() || end == nodes.end())
+				{
+					window.giveDirections("Cannot find starting and or destination IDs");
+					continue;
+				}
+				dest.push_back(*nodes.at(destId));
 			}
-			cout<<"poeira\n";
-
-			auto start = nodes.find(orId);
-			auto end   = nodes.find(destId);
-
-			if(start == nodes.end() || end == nodes.end())
-			{
-				window.giveDirections("Cannot find starting and or destination IDs");
-				continue;
-			}
-
-
-			instructions = this->calculatePath(*nodes.at(orId), *nodes.at(destId), path, edges);
+			instructions = this->calculatePath(*nodes.at(orId), dest, path, edges);
 
 
 			if(instructions.size()==0)
@@ -490,7 +492,7 @@ vector<pair<string, vector<long long> > > Map::getStopsList(vector<string> &inst
 	return stopsVector;
 }
 
-vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges)
+vector<string> Map::calculatePath(const Node &source, const vector<Map::Node> &destination, vector<long long> &path, vector <long long> &edges)
 {
 	vector<string> instructions;
 	int totalDistance = 0;
@@ -501,7 +503,17 @@ vector<string> Map::calculatePath(const Node &source, const Node &dest, vector<l
 
 	shared_ptr<Node> origin = nodes.at(source.getId());
 	graph.dijkstraShortestPath(*origin);
+	Node dest = destination[0];
+	int index = 0;
+	for(auto i = 0; i < destination.size(); i++){
+		if(graph.getVertex(destination[i])->path != NULL &&
+				graph.getVertex(destination[i])->getDist() < graph.getVertex(destination[index])->getDist())
+		{
+			index = i;
+		}
+	}
 
+	dest = destination[index];
 	vector<pair<string, vector<long long> > > stopsVector = getStopsList(instructions);
 
 	while (stopsVector.size() > 0)
@@ -802,7 +814,7 @@ vector<string> Map::findNearestRoadName(string name)
 	return nearest;
 }
 
-long long Map::findNodeByRoad(string name)
+vector<Map::Node> Map::findNodeByRoad(string name)
 {
 	set<long long> ids;
 
@@ -826,13 +838,7 @@ long long Map::findNodeByRoad(string name)
 	for(auto it = ids.begin(); it != ids.end(); it++)
 		roadNodes.push_back(*(nodes.at(*it)));
 
-	sort(roadNodes.begin(), roadNodes.end());
-	/*for(int i = 0; i < roadNodes.size(); ++i)
-		cout << i << " " << roadNodes[i] << endl;*/
-
-	int index = roadNodes.size() / 2;
-
-	return roadNodes[index].getId();
+	return roadNodes;
 
 
 

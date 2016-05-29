@@ -238,7 +238,7 @@ private:
 	 * @param edges a vector containing the id's of the edges traveled
 	 * @return a vector containing textual instructions like the movement orientation and the turns to take
 	 */
-	vector<string> calculatePath(const Node &source, const Node &dest, vector<long long> &path, vector <long long> &edges);
+	vector<string> calculatePath(const Node &source, const vector<Map::Node> &destination, vector<long long> &path, vector <long long> &edges);
 
 	/*
 	 * Calculates the distance between the two nodes and gathers the textual instructions
@@ -260,7 +260,7 @@ private:
 	vector<string> findNearestRoadName(string name);
 
 
-	long long findNodeByRoad(string name);
+	vector<Map::Node> findNodeByRoad(string name);
 public:
 	/**
 	 * Starts the graphic mode, displays the graph and the instructions
