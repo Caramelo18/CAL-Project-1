@@ -77,6 +77,12 @@ private:
 			out << "ID: " << node.nodeId << " Latitude: " << node.latitude << " Longitude: " << node.longitude << endl;
 			return out;
 		}
+
+		/**
+		 * Operator < that compares two nodes
+		 * @param comparable the Node to compare to
+		 * @return true if the left-hand node has smaller latitude
+		 */
 		bool operator<(const Node &n2) const
 		{
 			if(longitude == n2.getLongitude())
@@ -256,10 +262,18 @@ private:
 	 */
 	void fillPath(const Node &origin, const Node &dest, vector<long long> &path);
 
-
+	/**
+	 * Given a road name, returns a list of similar names (or the road itself if it's an exact match)
+	 * @param name road name
+	 * @return vector<string> with the road name if it's a perfect match or various similar names otherwise
+	 */
 	vector<string> findNearestRoadName(string name);
 
-
+	/**
+	 * Given a road name, returns a list of every node of that road
+	 * @param name road name
+	 * @return vector<Map::Node> with every node of the road
+	 */
 	vector<Map::Node> findNodeByRoad(string name);
 public:
 	/**
