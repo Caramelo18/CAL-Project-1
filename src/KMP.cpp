@@ -2,7 +2,7 @@
 
 vector<int> computePrefix(string pattern)
 {
-	int size = pattern.size();
+	unsigned int size = pattern.size();
 	vector<int> pi;
 	pi.resize(size);
 
@@ -19,18 +19,13 @@ vector<int> computePrefix(string pattern)
 		pi[q] = k;
 	}
 
-	/*for(int i = 0; i < size; i++)
-		cout << pi[i] << " ";
-	cout << endl;*/
-
 	return pi;
 }
 
-int KMPMatcher(string text, string pattern)
+int KMPMatcher(string text, string pattern, const vector<int> &pi)
 {
 	int n = text.size();
 	int m = pattern.size();
-	vector<int> pi = computePrefix(pattern);
 
 	int q = 0;
 	int maxQ = 0;
@@ -45,11 +40,10 @@ int KMPMatcher(string text, string pattern)
 					maxQ = q;
 		if(q == m)
 		{
-			//cout << "Pattern occurs with shift " << i - m << endl;
 			q = pi[q];
 		}
 
 	}
-//	cout << maxQ << " " << text << " " << pattern << endl;
+
 	return maxQ;
 }

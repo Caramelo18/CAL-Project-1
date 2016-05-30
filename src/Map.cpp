@@ -25,10 +25,10 @@ double Map::Node::getLatitude() const
 }
 
 bool Map::Node::operator==(const Node& comparable)
-										{
+														{
 	return this->latitude == comparable.latitude &&
 			this->longitude == comparable.longitude;
-										}
+														}
 
 
 Map::Road::Road(long long roadId, string roadName, bool isTwoWay)
@@ -337,8 +337,8 @@ void Map::start()
 				continue;
 			}
 			vector<Node> dest;
-			if(street){
-				//window.giveAlternatives("hey");
+			if(street)
+			{
 				alternatives = findNearestRoadName(destination);
 				if(alternatives.empty()){
 					window.giveDirections("Couldn't find road " + destination);
@@ -347,10 +347,11 @@ void Map::start()
 				if(alternatives.size() == 1 && alternatives[0] == destination)
 				{
 					dest = findNodeByRoad(destination);
+
 				}
 				else
 				{
-					for(auto i=0; i<alternatives.size(); i++){
+					for(unsigned int i=0; i < alternatives.size(); i++){
 						window.giveAlternatives(alternatives[i]);
 					}
 					continue;
@@ -358,12 +359,10 @@ void Map::start()
 			}
 			else {
 				if((destId = strtoll(destination.c_str(), NULL, 10)) == 0LL)
-
 				{
 					window.giveDirections("Error reading node IDs");
 					continue;
 				}
-				cout<<"poeira\n";
 
 				auto start = nodes.find(orId);
 				auto end   = nodes.find(destId);
@@ -503,17 +502,7 @@ vector<string> Map::calculatePath(const Node &source, const vector<Map::Node> &d
 
 	shared_ptr<Node> origin = nodes.at(source.getId());
 	graph.dijkstraShortestPath(*origin);
-	Node dest = destination[0];
-	int index = 0;
-	for(auto i = 0; i < destination.size(); i++){
-		if(graph.getVertex(destination[i])->path != NULL &&
-				graph.getVertex(destination[i])->getDist() < graph.getVertex(destination[index])->getDist())
-		{
-			index = i;
-		}
-	}
 
-	dest = destination[index];
 	vector<pair<string, vector<long long> > > stopsVector = getStopsList(instructions);
 
 	while (stopsVector.size() > 0)
@@ -574,6 +563,33 @@ vector<string> Map::calculatePath(const Node &source, const vector<Map::Node> &d
 		graph.dijkstraShortestPath(*origin);
 	}
 
+	bool sameStreet = false;
+	for(unsigned int i = 0; i < destination.size(); ++i)
+	{
+		if(destination[i].getId() == origin->getId())
+		{
+			sameStreet = true;
+			break;
+		}
+	}
+	if(sameStreet)
+	{
+		instructions.push_back("You are in the desired street");
+	//	return instructions;
+	}
+
+	Node dest = destination[0];
+	int index = 0;
+	for(unsigned int i = 0; i < destination.size(); i++){
+		if(graph.getVertex(destination[i])->path != NULL &&
+				graph.getVertex(destination[i])->getDist() < graph.getVertex(destination[index])->getDist())
+		{
+			index = i;
+		}
+	}
+
+	dest = destination[index];
+
 	pair<long, vector<string> > instPair = getInstructions(*origin, dest);
 	vector<string> instList = instPair.second;
 	totalDistance += instPair.first;
@@ -585,7 +601,8 @@ vector<string> Map::calculatePath(const Node &source, const vector<Map::Node> &d
 		ss << "It isn't possible to reach the destination from " << origin->getId() << ".";
 		instructions.push_back(ss.str());
 	}
-	else {
+	else
+	{
 		instructions.push_back("You've reached the desired destination.");
 		fillPath(*origin, dest, path);
 	}
@@ -717,7 +734,6 @@ bool Map::getData(long long &originId, string &destination)
 				break;
 
 			getline(i, value);
-			cout << value << endl;
 			switch (line[0]) {
 			case BANK:
 				if(value == "false")
@@ -789,13 +805,13 @@ void Map::fillPath(const Node &origin, const Node &dest, vector<long long> &path
 vector<string> Map::findNearestRoadName(string name)
 {
 	vector<string> nearest;
-	long long id;
+	vector<int> pi = computePrefix(name);
 	int maxQ = 0;
 	bool found = false;
 
 	for(auto it = roads.begin(); it != roads.end(); ++it)
 	{
-		int q = KMPMatcher(it->second.getRoadName(), name);
+		int q = KMPMatcher(it->second.getRoadName(), name, pi);
 		if(q > maxQ)
 		{
 			nearest.clear();
@@ -803,11 +819,11 @@ vector<string> Map::findNearestRoadName(string name)
 		}
 		if(q == maxQ )//&& !found)
 		{
-			if(!found)
-				nearest.push_back(it->second.getRoadName());
+			//if(!found)
+			nearest.push_back(it->second.getRoadName());
 
 			if(it->second.getRoadName() == name)
-				found = true;
+				break;
 		}
 
 	}

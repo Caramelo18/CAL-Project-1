@@ -6,4 +6,4 @@ using namespace std;
 
 vector<int> computePrefix(string pattern);
 
-int KMPMatcher(string text, string pattern);
+int KMPMatcher(string text, string pattern, const vector<int> &pi);
