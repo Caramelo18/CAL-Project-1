@@ -562,8 +562,9 @@ vector<string> Map::calculatePath(const Node &source, const vector<Map::Node> &d
 		origin = closestNode;
 		graph.dijkstraShortestPath(*origin);
 	}
-
+	Node dest = destination[0];
 	bool sameStreet = false;
+	vector<string> instList;
 	for(unsigned int i = 0; i < destination.size(); ++i)
 	{
 		if(destination[i].getId() == origin->getId())
@@ -572,13 +573,8 @@ vector<string> Map::calculatePath(const Node &source, const vector<Map::Node> &d
 			break;
 		}
 	}
-	if(sameStreet)
-	{
-		instructions.push_back("You are in the desired street");
-	//	return instructions;
-	}
+	if(!sameStreet){
 
-	Node dest = destination[0];
 	int index = 0;
 	for(unsigned int i = 0; i < destination.size(); i++){
 		if(graph.getVertex(destination[i])->path != NULL &&
@@ -591,12 +587,12 @@ vector<string> Map::calculatePath(const Node &source, const vector<Map::Node> &d
 	dest = destination[index];
 
 	pair<long, vector<string> > instPair = getInstructions(*origin, dest);
-	vector<string> instList = instPair.second;
+	instList = instPair.second;
 	totalDistance += instPair.first;
 
 	instructions.insert(instructions.end(), instList.begin(), instList.end());
-
-	if (instList.empty()) {
+	}
+	if (!sameStreet && instList.empty()) {
 		stringstream ss;
 		ss << "It isn't possible to reach the destination from " << origin->getId() << ".";
 		instructions.push_back(ss.str());
