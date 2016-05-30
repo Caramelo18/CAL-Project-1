@@ -2,13 +2,12 @@
 
 vector<int> computePrefix(string pattern)
 {
-	unsigned int size = pattern.size();
-	vector<int> pi;
-	pi.resize(size);
+	unsigned int size = pattern.length();
+	vector<int> pi(size + 1);
 
-	pi[0] = 0;
-	int k = 0;
-	for(int q = 1; q <= size; q++)
+	pi[0] = -1;
+	int k = -1;
+	for(int q = 0; q < size; q++)
 	{
 		while(k > 0 && (pattern[k] != pattern[q]))
 			k = pi[k - 1];
@@ -30,17 +29,19 @@ int KMPMatcher(string text, string pattern, const vector<int> &pi)
 	int q = 0;
 	int maxQ = 0;
 
-	for(int i = 0; i <= n; i++)
+	for(int i = 0; i < n; i++)
 	{
 		while(q > 0 && (pattern[q] != text[i]))
+		{
 			q = pi[q];
+		}
 		if(pattern[q] == text[i])
 			++q;
 		if(q > maxQ)
-					maxQ = q;
-		if(q == m)
+			maxQ = q;
+		if(q == m && n == m)
 		{
-			q = pi[q];
+			return -1;
 		}
 
 	}

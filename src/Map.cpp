@@ -803,7 +803,6 @@ vector<string> Map::findNearestRoadName(string name)
 	vector<string> nearest;
 	vector<int> pi = computePrefix(name);
 	int maxQ = 0;
-	bool found = false;
 
 	for(auto it = roads.begin(); it != roads.end(); ++it)
 	{
@@ -813,13 +812,15 @@ vector<string> Map::findNearestRoadName(string name)
 			nearest.clear();
 			maxQ = q;
 		}
+		if(q == -1)
+		{
+			nearest.clear();
+			nearest.push_back(it->second.getRoadName());
+			break;
+		}
 		if(q == maxQ )//&& !found)
 		{
-			//if(!found)
 			nearest.push_back(it->second.getRoadName());
-
-			if(it->second.getRoadName() == name)
-				break;
 		}
 
 	}
@@ -830,9 +831,11 @@ vector<Map::Node> Map::findNodeByRoad(string name)
 {
 	set<long long> ids;
 
+	vector<int> pi = computePrefix(name);
 	for(auto it = roads.begin(); it != roads.end(); ++it)
 	{
-		if(it->second.getRoadName() == name)
+		int q = KMPMatcher(it->second.getRoadName(), name, pi);
+		if(q == -1)
 		{
 			for(auto it2 = subRoads.begin(); it2 != subRoads.end(); ++it2)
 			{
